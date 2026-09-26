@@ -1,6 +1,6 @@
 {
-  "name": "Provided planning snapshot plus ProjectListings extraction and synthetic test enrichment",
-  "source": "Projects_Overlaps.xlsx + ProjectListings PDFs + synthetic test enrichment",
+  "name": "Provided planning snapshot",
+  "source": "Projects_Overlaps.xlsx",
   "referenceDate": "2026-09-26",
   "projects": [
     {
@@ -13,86 +13,55 @@
         {
           "name": "Stevens Creek Sub",
           "coordinates": [
-            -80.361952,
-            33.19156
-          ],
-          "coordinateSource": "synthetic-test"
+            -82.051362,
+            33.562599
+          ]
         },
         {
           "name": "Hooks Sub",
-          "coordinates": [
-            -80.311329,
-            33.18178
-          ],
-          "coordinateSource": "synthetic-test"
+          "coordinates": null
         }
       ],
       "inServiceDate": "2024-12-31",
       "rawDate": "12/31/2024",
       "sourceRow": 2,
-      "sourceProjectId": "6809 E",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 14,
+      "sourceProjectId": null,
+      "document": null,
+      "documentPage": null,
       "notes": [
         "Coordinates supplied by the starter workbook; not independently location-verified.",
-        "One endpoint is missing. The located endpoint represents the project center.",
-        "Source project 6809 E; a similarly named project 6809 G is a separate record.",
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 14.",
-        "PDF source ID: 6809 E.",
-        "PDF description: 9.5 miles. Scope includes rebuilding the 115 and 46 kV lines in this corridor SPDC..",
-        "PDF need: This project is required to address end of life and reliability issues on these lines..",
-        "Workbook coordinates adjusted as synthetic test data to keep utility regions separated on the map."
-      ],
-      "status": "in progress",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "Dominion Energy South Carolina"
+        "One endpoint is missing. The located endpoint represents the project center."
+      ]
     },
     {
       "id": "DESC_2",
       "utility": "DESC",
-      "state": "WV",
+      "state": "SC",
       "name": "Hooks - Thurmond 115 kV Tie: Rebuild",
       "shortName": "Hooks - Thurmond",
       "endpoints": [
         {
           "name": "Hooks Sub",
-          "coordinates": [
-            -81.61152,
-            38.375312
-          ],
-          "coordinateSource": "synthetic-test"
+          "coordinates": null
         },
         {
           "name": "Thurmond Sub",
           "coordinates": [
-            -81.540805,
-            38.392261
-          ],
-          "coordinateSource": "synthetic-test"
+            -82.195931,
+            33.660127
+          ]
         }
       ],
       "inServiceDate": "2024-12-31",
       "rawDate": "12/31/2024",
       "sourceRow": 3,
-      "sourceProjectId": "6810 A",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 31,
+      "sourceProjectId": null,
+      "document": null,
+      "documentPage": null,
       "notes": [
         "Coordinates supplied by the starter workbook; not independently location-verified.",
-        "One endpoint is missing. The located endpoint represents the project center.",
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 31.",
-        "PDF source ID: 6810 A.",
-        "PDF description: Rebuilding section of line between Hooks and Thurmond. Approximately 2.3 miles. The line will be rebuilt on existing R/W using steel poles, 115 kV insulation, and 1272 ACSR conductor..",
-        "PDF need: This project is required to address end of life and reliability issues on these lines..",
-        "Workbook coordinates adjusted as synthetic test data to keep utility regions separated on the map."
-      ],
-      "status": "in progress",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "Dominion Energy South Carolina"
+        "One endpoint is missing. The located endpoint represents the project center."
+      ]
     },
     {
       "id": "DESC_3",
@@ -104,606 +73,121 @@
         {
           "name": "Jasper Sub",
           "coordinates": [
-            -81.138236,
-            33.766104
-          ],
-          "coordinateSource": "synthetic-test"
+            -81.1246,
+            32.35912
+          ]
         },
         {
           "name": "Okatie Sub",
           "coordinates": [
-            -80.964434,
-            33.833478
-          ],
-          "coordinateSource": "synthetic-test"
+            -81.032495,
+            32.333758
+          ]
         }
       ],
       "inServiceDate": "2025-12-31",
       "rawDate": "12/31/2025",
       "sourceRow": 4,
-      "sourceProjectId": "06367 D - G",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 23,
+      "sourceProjectId": null,
+      "document": null,
+      "documentPage": null,
       "notes": [
-        "Coordinates supplied by the starter workbook; not independently location-verified.",
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 23.",
-        "PDF source ID: 06367 D - G.",
-        "PDF description: Construct a 230 kV line with B1272 ACSR from Jasper to Okatie 230/115kV Substation. The line is estimated to be 6.5 miles long. This makes Jasper a Medium Impact substation and will require a new CIP Hut..",
-        "PDF need: This project is needed to improve system performance and to meet NERC TPL and internal DESC Planning Criteria for reliability..",
-        "Workbook coordinates adjusted as synthetic test data to keep utility regions separated on the map."
-      ],
-      "status": "in progress",
-      "voltageKv": 230.0,
-      "assetType": "transmission line",
-      "workType": "construct",
-      "sponsor": "Dominion Energy South Carolina"
+        "Coordinates supplied by the starter workbook; not independently location-verified."
+      ]
     },
     {
       "id": "DESC_4",
       "utility": "DESC",
-      "state": "WV",
+      "state": "SC",
       "name": "Queensboro - Ft Johnson 115 kV & Queensboro-Bayfront 115 kV (Queensboro-James Island Sect)",
       "shortName": "Queensboro - Ft Johnson",
       "endpoints": [
         {
           "name": "Queensboro Sub",
           "coordinates": [
-            -81.763656,
-            38.300692
-          ],
-          "coordinateSource": "synthetic-test"
+            -79.967332,
+            32.722793
+          ]
         },
         {
           "name": "Ft Johnson Sub",
-          "coordinates": [
-            -81.659072,
-            38.360322
-          ],
-          "coordinateSource": "synthetic-test"
+          "coordinates": null
         }
       ],
       "inServiceDate": "2023-12-31",
       "rawDate": "12/31/2023",
       "sourceRow": 5,
-      "sourceProjectId": "6807 B",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 1,
+      "sourceProjectId": null,
+      "document": null,
+      "documentPage": null,
       "notes": [
         "Coordinates supplied by the starter workbook; not independently location-verified.",
-        "One endpoint is missing. The located endpoint represents the project center.",
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 1.",
-        "PDF source ID: 6807 B.",
-        "PDF description: Replace the Queensboro – Ft Johnson 115 kV Line and structures as they have reached the end of life..",
-        "PDF need: This project is required due to address end of life issues..",
-        "Workbook coordinates adjusted as synthetic test data to keep utility regions separated on the map."
-      ],
-      "status": "in progress",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": null,
-      "sponsor": "Dominion Energy South Carolina"
+        "One endpoint is missing. The located endpoint represents the project center."
+      ]
     },
     {
       "id": "DESC_5",
       "utility": "DESC",
-      "state": "WV",
+      "state": "SC",
       "name": "Okatie-Bluffton 115 kV: Rebuild",
       "shortName": "Okatie - Bluffton",
       "endpoints": [
         {
           "name": "Okatie Sub",
           "coordinates": [
-            -81.531708,
-            38.231364
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Bluffton Sub",
-          "coordinates": [
-            -81.367519,
-            38.325069
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2025-06-01",
-      "rawDate": "06/01/2025",
-      "sourceRow": 6,
-      "sourceProjectId": "6808 S",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 10,
-      "notes": [
-        "Coordinates supplied by the starter workbook; not independently location-verified.",
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 10.",
-        "PDF source ID: 6808 S.",
-        "PDF description: Replace wooden H-Frame structures with Self Supporting Steel Structures and upgrade conductor to standard 1272 ACSR..",
-        "PDF need: This project is required to address end of life and reliability issues on these lines..",
-        "Workbook coordinates adjusted as synthetic test data to keep utility regions separated on the map."
-      ],
-      "status": "in progress",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "Dominion Energy South Carolina"
-    },
-    {
-      "id": "DESC_PDF_0167C_D",
-      "utility": "DESC",
-      "state": "SC",
-      "name": "Union Pier 115-13.8 kV Sub: Tap",
-      "shortName": "Union Pier 115-13.8 kV Sub: Tap",
-      "endpoints": [
-        {
-          "name": "Union Pier 115",
-          "coordinates": [
-            -80.361448,
-            33.052204
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "13.8 kV Sub: Tap",
-          "coordinates": [
-            -80.318444,
-            33.076517
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2027-12-31",
-      "rawDate": "12/31/27",
-      "sourceRow": 12,
-      "sourceProjectId": "0167C-D",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 2,
-      "status": "planned",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": null,
-      "sponsor": "Dominion Energy South Carolina",
-      "notes": [
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 2.",
-        "PDF source ID: 0167C-D.",
-        "PDF description: Installing a 115 kV Tap to feed the future Union Pier 115 kV Sub..",
-        "PDF need: This project is needed to for load growth in the Charleston area..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "DESC_PDF_0139_M_N",
-      "utility": "DESC",
-      "state": "SC",
-      "name": "Okatie 230-115kV Substation, Jasper – Yemassee 230kV #1 Fold-in",
-      "shortName": "Okatie 230-115kV Substation, Jasper – Yemassee 230kV #1 Fold-in",
-      "endpoints": [
-        {
-          "name": "Okatie 230",
-          "coordinates": [
             -81.032495,
             32.333758
           ]
         },
         {
-          "name": "Unresolved endpoint",
+          "name": "Bluffton Sub",
           "coordinates": [
-            -80.796011,
-            32.368991
-          ],
-          "coordinateSource": "synthetic-test"
+            -80.853384,
+            32.235027
+          ]
         }
       ],
-      "inServiceDate": "2024-12-31",
-      "rawDate": "12/31/2024",
-      "sourceRow": 13,
-      "sourceProjectId": "0139 M,N",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 3,
-      "status": "in progress",
-      "voltageKv": 230.0,
-      "assetType": "transformer/bank",
-      "workType": "bank/transformer",
-      "sponsor": "Dominion Energy South Carolina",
+      "inServiceDate": "2025-06-01",
+      "rawDate": "06/01/2025",
+      "sourceRow": 6,
+      "sourceProjectId": null,
+      "document": null,
+      "documentPage": null,
       "notes": [
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 3.",
-        "PDF source ID: 0139 M,N.",
-        "PDF description: Expand existing Okatie Transmission sub, add a 230-115 autobank and fold the Jasper – Yemassee 230 kV #1 line into the 230 kV side. Construct two additional 115 kV bus tie lines..",
-        "PDF need: This project is needed to improve system performance and to meet NERC TPL and internal DESC Planning Criteria for reliability..",
-        "Endpoint coordinates were reused from known workbook endpoint names; review before relying on location.",
-        "Missing endpoint coordinate generated as synthetic test data; not source-verified."
-      ]
-    },
-    {
-      "id": "DESC_PDF_6341_A_F",
-      "utility": "DESC",
-      "state": "SC",
-      "name": "Cainhoy - Hamlin 115kV: Rebuild Line and Cainhoy – Hamlin 115 kV #2: Construct New 115 kV Line",
-      "shortName": "Cainhoy - Hamlin 115kV: Rebuild Line and Cainhoy – Hamlin 115 kV #2: Construct N",
-      "endpoints": [
-        {
-          "name": "Cainhoy",
-          "coordinates": [
-            -80.360368,
-            33.031568
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Hamlin",
-          "coordinates": null,
-          "coordinateSource": "unresolved"
-        }
-      ],
-      "inServiceDate": "2025-12-01",
-      "rawDate": "12/01/25",
-      "sourceRow": 14,
-      "sourceProjectId": "6341 A-F",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 4,
-      "status": "in progress",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "Dominion Energy South Carolina",
-      "notes": [
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 4.",
-        "PDF source ID: 6341 A-F.",
-        "PDF description: Upgrade the 954 ACSR portion of the Cainhoy – Hamlin 115 kV line to B795 ACSR conductor, construct a new Cainhoy – Hamlin 115 kV #2 line, add terminals to Cainhoy and Hamlin sub to accommodate upgrades..",
-        "PDF need: This project is required due to load growth in the Mount Pleasant area and to meet NERC TPL and internal DESC Planning criteria..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "DESC_PDF_6808_J",
-      "utility": "DESC",
-      "state": "VA",
-      "name": "Eastover - Square D 115kV: Rebuild",
-      "shortName": "Eastover - Square D 115kV: Rebuild",
-      "endpoints": [
-        {
-          "name": "Eastover",
-          "coordinates": [
-            -77.593028,
-            37.320616
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Square D",
-          "coordinates": [
-            -77.26977,
-            37.221935
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2024-06-01",
-      "rawDate": "06/01/24",
-      "sourceRow": 15,
-      "sourceProjectId": "6808 J",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 5,
-      "status": "in progress",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "Dominion Energy South Carolina",
-      "notes": [
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 5.",
-        "PDF source ID: 6808 J.",
-        "PDF description: Replace wooden H-Frame structures with Self Supporting Steel Structures and restring with 1272 ACSR conductor..",
-        "PDF need: This project is required to address end of life and reliability issues on these lines..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "DESC_PDF_6808_K",
-      "utility": "DESC",
-      "state": "WV",
-      "name": "Burton-St Helena 115kV: Rebuild Burton-Frogmore Transmission Section",
-      "shortName": "Burton-St Helena 115kV: Rebuild Burton-Frogmore Transmission Section",
-      "endpoints": [
-        {
-          "name": "Burton",
-          "coordinates": [
-            -81.59802,
-            38.450212
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "St Helena",
-          "coordinates": [
-            -81.394736,
-            38.458555
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2024-12-31",
-      "rawDate": "12/31/24",
-      "sourceRow": 16,
-      "sourceProjectId": "6808 K",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 6,
-      "status": "in progress",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "Dominion Energy South Carolina",
-      "notes": [
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 6.",
-        "PDF source ID: 6808 K.",
-        "PDF description: Replace wooden structures with Self Supporting Steel Structures and restring with 1272 ACSR conductor for the Burton – Frogmore Transmission section..",
-        "PDF need: This project is required to address end of life and reliability issues on these lines..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "DESC_PDF_6808_L",
-      "utility": "DESC",
-      "state": "VA",
-      "name": "Burton-St Helena 115kV: Frogmore Distribution - St Helena",
-      "shortName": "Burton-St Helena 115kV: Frogmore Distribution - St Helena",
-      "endpoints": [
-        {
-          "name": "Burton",
-          "coordinates": [
-            -77.324936,
-            37.326944
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "St Helena",
-          "coordinates": [
-            -77.234695,
-            37.316859
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2025-12-31",
-      "rawDate": "12/31/25",
-      "sourceRow": 17,
-      "sourceProjectId": "6808 L",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 7,
-      "status": "in progress",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": null,
-      "sponsor": "Dominion Energy South Carolina",
-      "notes": [
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 7.",
-        "PDF source ID: 6808 L.",
-        "PDF description: Replace wooden structures with Self Supporting Steel Structures and upgrade to 795 ACSR for the Frogmore Distribution Tap – St. Helena section..",
-        "PDF need: This project is required to address end of life and reliability issues on these lines..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "DESC_PDF_6808_N_O",
-      "utility": "DESC",
-      "state": "WV",
-      "name": "VCS1-Denny Terrace 230kV & VCS1-Pineland 230kV: Rebuild Single Circuit Sections",
-      "shortName": "VCS1-Denny Terrace 230kV & VCS1-Pineland 230kV: Rebuild Single Circuit Sections",
-      "endpoints": [
-        {
-          "name": "VCS1",
-          "coordinates": [
-            -81.511116,
-            38.412244
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Denny Terrace",
-          "coordinates": [
-            -81.413402,
-            38.478801
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2026-12-31",
-      "rawDate": "12/31/26",
-      "sourceRow": 18,
-      "sourceProjectId": "6808 N,O",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 8,
-      "status": "in progress",
-      "voltageKv": 230.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "Dominion Energy South Carolina",
-      "notes": [
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 8.",
-        "PDF source ID: 6808 N,O.",
-        "PDF description: Replace wooden H-Frame structures with Self Supporting Steel Structures and restring with standard 1272 ACSR conductor..",
-        "PDF need: This project is required to address end of life and reliability issues on these lines..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "DESC_PDF_6808_R",
-      "utility": "DESC",
-      "state": "VA",
-      "name": "Wateree-Killian 230kV: Rebuild",
-      "shortName": "Wateree-Killian 230kV: Rebuild",
-      "endpoints": [
-        {
-          "name": "Wateree",
-          "coordinates": [
-            -77.616068,
-            37.144104
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Killian",
-          "coordinates": [
-            -77.40925,
-            37.327198
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2028-12-31",
-      "rawDate": "12/31/28",
-      "sourceRow": 19,
-      "sourceProjectId": "6808 R",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 9,
-      "status": "in progress",
-      "voltageKv": 230.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "Dominion Energy South Carolina",
-      "notes": [
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 9.",
-        "PDF source ID: 6808 R.",
-        "PDF description: Replace wooden H-Frame structures with Self Supporting Steel Structures..",
-        "PDF need: This project is required to address end of life and reliability issues on these lines..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "DESC_PDF_6808_U",
-      "utility": "DESC",
-      "state": "NC",
-      "name": "Hopkins-CIP 230kV: Rebuild",
-      "shortName": "Hopkins-CIP 230kV: Rebuild",
-      "endpoints": [
-        {
-          "name": "Hopkins",
-          "coordinates": [
-            -78.964032,
-            35.064972
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "CIP",
-          "coordinates": [
-            -78.788747,
-            35.208443
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2025-12-31",
-      "rawDate": "12/31/25",
-      "sourceRow": 20,
-      "sourceProjectId": "6808 U",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 11,
-      "status": "planned",
-      "voltageKv": 230.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "Dominion Energy South Carolina",
-      "notes": [
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 11.",
-        "PDF source ID: 6808 U.",
-        "PDF description: Replace wooden H-Frame structures with Self Supporting Steel Structures..",
-        "PDF need: This project is required to address end of life and reliability issues on these lines..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "DESC_PDF_6808_V",
-      "utility": "DESC",
-      "state": "WV",
-      "name": "Faber Place-Bayfront 115kV: Rebuild North Bridge Terrace to Bayfront Section",
-      "shortName": "Faber Place-Bayfront 115kV: Rebuild North Bridge Terrace to Bayfront Section",
-      "endpoints": [
-        {
-          "name": "Faber Place",
-          "coordinates": [
-            -81.596832,
-            38.479612
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Bayfront",
-          "coordinates": null,
-          "coordinateSource": "unresolved"
-        }
-      ],
-      "inServiceDate": "2028-12-31",
-      "rawDate": "12/31/28",
-      "sourceRow": 21,
-      "sourceProjectId": "6808 V",
-      "document": "2024-2028-2million-and-above-project-descriptions.pdf",
-      "documentPage": 12,
-      "status": "planned",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "Dominion Energy South Carolina",
-      "notes": [
-        "Extracted from 2024-2028-2million-and-above-project-descriptions.pdf, PDF page 12.",
-        "PDF source ID: 6808 V.",
-        "PDF description: Replace wooden structures with Self Supporting Steel Structures and upgrade conductor to standard 1272 ACSR..",
-        "PDF need: This project is required to address end of life and reliability issues on these lines..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
+        "Coordinates supplied by the starter workbook; not independently location-verified."
       ]
     },
     {
       "id": "GPC_1",
       "utility": "GPC",
-      "state": "FL",
+      "state": "GA",
       "name": "EVANS PRIMARY - THURMOND DAM (USA) #5 115KV REBUILD",
       "shortName": "Evans Primary - Thurmond Dam",
       "endpoints": [
         {
           "name": "EVANS PRIMARY",
           "coordinates": [
-            -82.407124,
-            30.525752
-          ],
-          "coordinateSource": "synthetic-test"
+            -82.168648,
+            33.543994
+          ]
         },
         {
           "name": "THURMOND DAM #5",
           "coordinates": [
-            -82.358605,
-            30.513768
-          ],
-          "coordinateSource": "synthetic-test"
+            -82.195931,
+            33.660127
+          ]
         }
       ],
       "inServiceDate": "2033-06-01",
       "rawDate": "6/1/2033",
       "sourceRow": 7,
-      "sourceProjectId": "20793",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 410,
+      "sourceProjectId": null,
+      "document": null,
+      "documentPage": null,
       "notes": [
-        "Coordinates supplied by the starter workbook; not independently location-verified.",
-        "Date retained as labeled by the workbook. Georgia PDF uses Need Date; source terminology and disclosure markings require review before enrichment.",
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 410.",
-        "PDF source ID: 20793.",
-        "PDF start date: 06/01/2029.",
-        "PDF description: Rebuild approximately 5.45 miles of Euchee Creek - Thurmond Dam segment of the Evans Primary - Thurmond Dam (USA) #5 115kV line with 200C 1351 ACSS Martin conductor. Replace the main bus with a larger element at Thurmond Dam (USA)..",
-        "Workbook coordinates adjusted as synthetic test data to keep utility regions separated on the map."
-      ],
-      "status": "planned",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "GPC"
+        "Coordinates supplied by the starter workbook; not independently location-verified."
+      ]
     },
     {
       "id": "GPC_2",
@@ -715,135 +199,91 @@
         {
           "name": "MCINTOSH",
           "coordinates": [
-            -83.677268,
-            32.851144
-          ],
-          "coordinateSource": "synthetic-test"
+            -81.175112,
+            32.352116
+          ]
         },
         {
           "name": "PURRYSBURG",
-          "coordinates": [
-            -83.473394,
-            32.820944
-          ],
-          "coordinateSource": "synthetic-test"
+          "coordinates": null
         }
       ],
       "inServiceDate": "2026-06-01",
       "rawDate": "6/1/2026",
       "sourceRow": 8,
-      "sourceProjectId": "20277",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 227,
+      "sourceProjectId": null,
+      "document": null,
+      "documentPage": null,
       "notes": [
         "Coordinates supplied by the starter workbook; not independently location-verified.",
         "One endpoint is missing. The located endpoint represents the project center.",
-        "McIntosh coordinates differ by approximately 657 m between workbook records. Review before merging.",
-        "Date retained as labeled by the workbook. Georgia PDF uses Need Date; source terminology and disclosure markings require review before enrichment.",
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 227.",
-        "PDF source ID: 20277.",
-        "Listed sponsor/source: SAV.",
-        "PDF start date: 01/01/2024.",
-        "PDF description: Install reactors on the McIntosh - Purrysburg (Black and White) 230kV tie lines at McIntosh. Rebuild 0.1 miles (GPC portion) for both lines to (2) 200C 1351 ACSS conductor..",
-        "Workbook coordinates adjusted as synthetic test data to keep utility regions separated on the map."
-      ],
-      "status": "planned",
-      "voltageKv": 230.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "SAV"
+        "McIntosh coordinates differ by approximately 657 m between workbook records. Review before merging."
+      ]
     },
     {
       "id": "GPC_3",
       "utility": "GPC",
-      "state": "AL",
+      "state": "GA",
       "name": "SAV: GOSHEN (SAV) - MCINTOSH 115KV LINE REBUILD",
       "shortName": "Goshen - McIntosh",
       "endpoints": [
         {
           "name": "GOSHEN",
           "coordinates": [
-            -85.476788,
-            32.414468
-          ],
-          "coordinateSource": "synthetic-test"
+            -81.209472,
+            32.248701
+          ]
         },
         {
           "name": "MCINTOSH",
           "coordinates": [
-            -85.375675,
-            32.43106
-          ],
-          "coordinateSource": "synthetic-test"
+            -81.182105,
+            32.352116
+          ]
         }
       ],
       "inServiceDate": "2027-06-01",
       "rawDate": "6/1/2027",
       "sourceRow": 9,
-      "sourceProjectId": "20065",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 314,
+      "sourceProjectId": null,
+      "document": null,
+      "documentPage": null,
       "notes": [
         "Coordinates supplied by the starter workbook; not independently location-verified.",
-        "McIntosh coordinates differ by approximately 657 m between workbook records. Review before merging.",
-        "Date retained as labeled by the workbook. Georgia PDF uses Need Date; source terminology and disclosure markings require review before enrichment.",
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 314.",
-        "PDF source ID: 20065.",
-        "Listed sponsor/source: SAV.",
-        "PDF start date: 06/01/2025.",
-        "PDF description: Rebuild the Goshen (Savannah) - Georgia Pacific (Rincon) section, approximately 6.7 miles, of the Goshen (Sav) - McIntosh 115kV line using 100C 795 ACSR Drake conductor..",
-        "Workbook coordinates adjusted as synthetic test data to keep utility regions separated on the map."
-      ],
-      "status": "planned",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "SAV"
+        "McIntosh coordinates differ by approximately 657 m between workbook records. Review before merging."
+      ]
     },
     {
       "id": "GPC_4",
       "utility": "GPC",
-      "state": "AL",
+      "state": "GA",
       "name": "MITCHELL - NORTH TIFTON 230KV RECONDUCTOR",
       "shortName": "Mitchell - North Tifton",
       "endpoints": [
         {
           "name": "Mitchell Substation",
           "coordinates": [
-            -85.335272,
-            32.318988
-          ],
-          "coordinateSource": "synthetic-test"
+            -84.133843,
+            31.447121
+          ]
         },
         {
           "name": "North Tifton Substation",
           "coordinates": [
-            -85.067913,
-            32.266825
-          ],
-          "coordinateSource": "synthetic-test"
+            -83.54913,
+            31.478089
+          ]
         }
       ],
       "inServiceDate": "2025-05-01",
       "rawDate": "05/01/2025",
       "sourceRow": 10,
-      "sourceProjectId": "18492",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 233,
+      "sourceProjectId": null,
+      "document": null,
+      "documentPage": null,
       "notes": [
-        "Coordinates supplied by the starter workbook; not independently location-verified.",
-        "Date retained as labeled by the workbook. Georgia PDF uses Need Date; source terminology and disclosure markings require review before enrichment.",
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 233.",
-        "PDF source ID: 18492.",
-        "PDF start date: 12/31/2021.",
-        "PDF description: Rebuild 35.21 miles of the Mitchell - North Tifton 230kV line from 100C 795 ACSR to 100C 1351 ACSR..",
-        "Workbook coordinates adjusted as synthetic test data to keep utility regions separated on the map."
-      ],
-      "status": "planned",
-      "voltageKv": 230.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "GPC"
+        "Coordinates supplied by the starter workbook; not independently location-verified."
+      ]
     },
     {
       "id": "GPC_5",
@@ -855,867 +295,26 @@
         {
           "name": "JESUP",
           "coordinates": [
-            -81.27948,
-            31.941512
-          ],
-          "coordinateSource": "synthetic-test"
+            -81.924947,
+            31.603106
+          ]
         },
         {
           "name": "LUDOWICI PRIMARY",
           "coordinates": [
-            -81.233044,
-            31.959887
-          ],
-          "coordinateSource": "synthetic-test"
+            -81.743703,
+            31.721597
+          ]
         }
       ],
       "inServiceDate": "2025-06-01",
       "rawDate": "6/1/2025",
       "sourceRow": 11,
-      "sourceProjectId": "11821",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 240,
-      "notes": [
-        "Coordinates supplied by the starter workbook; not independently location-verified.",
-        "Date retained as labeled by the workbook. Georgia PDF uses Need Date; source terminology and disclosure markings require review before enrichment.",
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 240.",
-        "PDF source ID: 11821.",
-        "PDF start date: 06/01/2023.",
-        "PDF description: Rebuild approximately 7.5 miles of the Jesup - North Jesup - Rayonier section of the Jesup - Ludowici Primary 115kV line from 100C 336.4 ACSR Linnet conductor to 100C 795 ACSR Drake conductor..",
-        "Workbook coordinates adjusted as synthetic test data to keep utility regions separated on the map."
-      ],
-      "status": "planned",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "GPC"
-    },
-    {
-      "id": "GPC_PDF_20785",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "SAV: GOSHEN (SAV) - KRAFT 115KV LINE REBUILD",
-      "shortName": "SAV: GOSHEN (SAV) - KRAFT 115KV LINE REBUILD",
-      "endpoints": [
-        {
-          "name": "GOSHEN",
-          "coordinates": [
-            -81.209472,
-            32.248701
-          ]
-        },
-        {
-          "name": "KRAFT",
-          "coordinates": [
-            -81.040714,
-            32.273867
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2027-06-01",
-      "rawDate": "06/01/2027",
-      "sourceRow": 143,
-      "sourceProjectId": "20785",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 313,
-      "status": "planned",
-      "voltageKv": 115.0,
-      "assetType": "transmission line",
-      "workType": "rebuild",
-      "sponsor": "SAV",
-      "notes": [
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 313.",
-        "PDF source ID: 20785.",
-        "Listed sponsor/source: SAV.",
-        "PDF start date: 06/01/2024.",
-        "PDF description: Rebuild 9.3 miles of Goshen - Kraft 115kV line from Kraft - Godley J - Rice Hope from 100C 795 ACSR Drake to 200C 1351 ACSS Martin..",
-        "Endpoint coordinates were reused from known workbook endpoint names; review before relying on location.",
-        "Missing endpoint coordinate generated as synthetic test data; not source-verified."
-      ]
-    },
-    {
-      "id": "GPC_PDF_21116",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "GOSHEN AREA STRATEGIC SOLUTION",
-      "shortName": "GOSHEN AREA STRATEGIC SOLUTION",
-      "endpoints": [
-        {
-          "name": "GOSHEN AREA STRATEGIC SOLUTION",
-          "coordinates": [
-            -81.209472,
-            32.248701
-          ]
-        },
-        {
-          "name": "Unresolved endpoint",
-          "coordinates": [
-            -80.956334,
-            32.286451
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2030-06-01",
-      "rawDate": "06/01/2030",
-      "sourceRow": 211,
-      "sourceProjectId": "21116",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 382,
-      "status": "planned",
-      "voltageKv": 230.0,
-      "assetType": "transmission line",
-      "workType": "construct",
-      "sponsor": "GPC",
-      "notes": [
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 382.",
-        "PDF source ID: 21116.",
-        "PDF start date: 06/01/2025.",
-        "PDF description: Construct a 230kV switching station on the Waynesboro - Wilson 230kV line and a new 230kV line between the switching station and Goshen, approximately 12.3 miles. Provides an alternate power flow path into Goshen outside of the existing con.",
-        "Endpoint coordinates were reused from known workbook endpoint names; review before relying on location.",
-        "Missing endpoint coordinate generated as synthetic test data; not source-verified."
-      ]
-    },
-    {
-      "id": "GPC_PDF_21046",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "THALMANN AND COLERAIN 23O KV LINE RELAY PANEL UPGRADES",
-      "shortName": "THALMANN AND COLERAIN 23O KV LINE RELAY PANEL UPGRADES",
-      "endpoints": [
-        {
-          "name": "THALMANN AND COLERAIN 23O KV",
-          "coordinates": [
-            -83.610452,
-            32.909888
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Unresolved endpoint",
-          "coordinates": [
-            -83.455293,
-            32.97342
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2025-06-01",
-      "rawDate": "06/01/2025",
-      "sourceRow": 51,
-      "sourceProjectId": "21046",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 214,
-      "status": "planned",
-      "voltageKv": 115.0,
-      "assetType": "relay/protection",
-      "workType": "relay upgrade",
-      "sponsor": "GPC",
-      "notes": [
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 214.",
-        "PDF source ID: 21046.",
-        "PDF start date: 12/01/2024.",
-        "PDF description: Relay protection modifications at GPC's Thalmann and Colerain substations to match relay scheme used at GTC's new Camden Industrial Park 230/115kV substation..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "GPC_PDF_20326",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "ANTHONY SHOALS STATCOM SYSTEM",
-      "shortName": "ANTHONY SHOALS STATCOM SYSTEM",
-      "endpoints": [
-        {
-          "name": "ANTHONY SHOALS STATCOM SYSTEM",
-          "coordinates": [
-            -84.216876,
-            33.724632
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Unresolved endpoint",
-          "coordinates": [
-            -84.029388,
-            33.691487
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2025-12-31",
-      "rawDate": "12/31/2025",
-      "sourceRow": 52,
-      "sourceProjectId": "20326",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 215,
-      "status": "planned",
-      "voltageKv": 230.0,
-      "assetType": "STATCOM",
-      "workType": "STATCOM",
-      "sponsor": "GPC",
-      "notes": [
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 215.",
-        "PDF source ID: 20326.",
-        "PDF start date: 08/04/2023.",
-        "PDF description: Install a + 150 / - 150 MVAR turnkey STATCOM system at Anthony Shoals 230kV substation..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "GPC_PDF_17075",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "SAV: LITTLE OGEECHEE 230-115KV: RELAY MODERNIZATION",
-      "shortName": "SAV: LITTLE OGEECHEE 230-115KV: RELAY MODERNIZATION",
-      "endpoints": [
-        {
-          "name": "LITTLE OGEECHEE 230",
-          "coordinates": [
-            -84.546204,
-            33.731996
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Unresolved endpoint",
-          "coordinates": [
-            -84.494433,
-            33.725945
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2025-12-31",
-      "rawDate": "12/31/2025",
-      "sourceRow": 53,
-      "sourceProjectId": "17075",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 216,
-      "status": "planned",
-      "voltageKv": 230.0,
-      "assetType": "relay/protection",
-      "workType": "rebuild",
-      "sponsor": "SAV",
-      "notes": [
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 216.",
-        "PDF source ID: 17075.",
-        "Listed sponsor/source: SAV.",
-        "PDF start date: 06/01/2022.",
-        "PDF description: Relay modernization with conversion of the 230kV ring bus to BAAH topology and addition of BAAH rung for Big Ogeechee - Little Ogeechee (Red) 230kV Line. Rebuild 115kV straight bus to BAAH design..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "GPC_PDF_20491",
-      "utility": "GPC",
-      "state": "AL",
-      "name": "EAST POINT RELAY MODERNIZATION",
-      "shortName": "EAST POINT RELAY MODERNIZATION",
-      "endpoints": [
-        {
-          "name": "EAST POINT",
-          "coordinates": [
-            -85.259564,
-            32.346036
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Unresolved endpoint",
-          "coordinates": [
-            -85.173909,
-            32.349828
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2026-06-01",
-      "rawDate": "06/01/2026",
-      "sourceRow": 54,
-      "sourceProjectId": "20491",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 217,
-      "status": "planned",
-      "voltageKv": 230.0,
-      "assetType": "transformer/bank",
-      "workType": "relay upgrade",
-      "sponsor": "GPC",
-      "notes": [
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 217.",
-        "PDF source ID: 20491.",
-        "PDF start date: 01/01/2024.",
-        "PDF description: Upgrade protection on 230kV buses, 115kV buses, and 230/115kV auto transformer at the East Point station. Add adequate monitoring on DC supply..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "GPC_PDF_20474",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "GRADY 230/115KV RELAY MODERNIZATION",
-      "shortName": "GRADY 230/115KV RELAY MODERNIZATION",
-      "endpoints": [
-        {
-          "name": "GRADY 230/",
-          "coordinates": [
-            -83.658368,
-            32.841204
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Unresolved endpoint",
-          "coordinates": [
-            -83.557132,
-            32.859283
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2026-06-01",
-      "rawDate": "06/01/2026",
-      "sourceRow": 55,
-      "sourceProjectId": "20474",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 218,
-      "status": "planned",
-      "voltageKv": 230.0,
-      "assetType": "transformer/bank",
-      "workType": "relay upgrade",
-      "sponsor": "GPC",
-      "notes": [
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 218.",
-        "PDF source ID: 20474.",
-        "PDF start date: 01/01/2024.",
-        "PDF description: Upgrade protection on 230kV bus, all 115kV buses, and both 230/115kV auto transformers at Grady. Add adequate monitoring on DC supply. Install a 230kV breaker and associated switches on the high side of Grady 230/115kV auto transformer D..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "GPC_PDF_20490",
-      "utility": "GPC",
-      "state": "FL",
-      "name": "KLONDIKE RELAY MODERNIZATION",
-      "shortName": "KLONDIKE RELAY MODERNIZATION",
-      "endpoints": [
-        {
-          "name": "KLONDIKE",
-          "coordinates": [
-            -82.596664,
-            30.606056
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Unresolved endpoint",
-          "coordinates": [
-            -82.559124,
-            30.635149
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2026-06-01",
-      "rawDate": "06/01/2026",
-      "sourceRow": 56,
-      "sourceProjectId": "20490",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 219,
-      "status": "planned",
-      "voltageKv": 230.0,
-      "assetType": "relay/protection",
-      "workType": "relay upgrade",
-      "sponsor": "GPC",
-      "notes": [
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 219.",
-        "PDF source ID: 20490.",
-        "PDF start date: 01/01/2024.",
-        "PDF description: Upgrade protection on 230kV buses at the Klondike station. Add adequate monitoring on DC supply..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "GPC_PDF_20300",
-      "utility": "GPC",
-      "state": "AL",
-      "name": "MORROW 115KV RELAY UPGRADE",
-      "shortName": "MORROW 115KV RELAY UPGRADE",
-      "endpoints": [
-        {
-          "name": "MORROW",
-          "coordinates": [
-            -85.453964,
-            32.299136
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Unresolved endpoint",
-          "coordinates": null,
-          "coordinateSource": "unresolved"
-        }
-      ],
-      "inServiceDate": "2026-06-01",
-      "rawDate": "06/01/2026",
-      "sourceRow": 57,
-      "sourceProjectId": "20300",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 220,
-      "status": "planned",
-      "voltageKv": 115.0,
-      "assetType": "relay/protection",
-      "workType": "relay upgrade",
-      "sponsor": "GPC",
-      "notes": [
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 220.",
-        "PDF source ID: 20300.",
-        "PDF start date: 06/01/2024.",
-        "PDF description: Upgrade protection scheme on all three 115kV buses at Morrow..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "GPC_PDF_20489",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "SCOTTDALE RELAY MODERNIZATION",
-      "shortName": "SCOTTDALE RELAY MODERNIZATION",
-      "endpoints": [
-        {
-          "name": "SCOTTDALE",
-          "coordinates": [
-            -84.218604,
-            33.63576
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Unresolved endpoint",
-          "coordinates": [
-            -84.088808,
-            33.790093
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2026-06-01",
-      "rawDate": "06/01/2026",
-      "sourceRow": 58,
-      "sourceProjectId": "20489",
-      "document": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-      "documentPage": 221,
-      "status": "planned",
-      "voltageKv": 230.0,
-      "assetType": "transformer/bank",
-      "workType": "relay upgrade",
-      "sponsor": "GPC",
-      "notes": [
-        "Extracted from 2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf, PDF page 221.",
-        "PDF source ID: 20489.",
-        "PDF start date: 01/01/2024.",
-        "PDF description: Upgrade protection on 230kV bus and 230/115kV auto transformers at the Scottdale station. Add adequate monitoring on DC supply..",
-        "No endpoint coordinates were inferred; project will not appear as a map marker until reviewed.",
-        "Synthetic test coordinates generated from project ID and utility region; not source-verified."
-      ]
-    },
-    {
-      "id": "DESC_SYN_IMMEDIATE",
-      "utility": "DESC",
-      "state": "SC",
-      "name": "Synthetic Immediate DESC",
-      "shortName": "Synthetic Immediate DESC",
-      "endpoints": [
-        {
-          "name": "Synthetic Immediate DESC A",
-          "coordinates": [
-            -81.976,
-            33.492
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Synthetic Immediate DESC B",
-          "coordinates": [
-            -81.950821,
-            33.497627
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2028-01-15",
-      "rawDate": "2028-01-15",
-      "sourceRow": 212,
-      "sourceProjectId": "DESC-SYN-IMMEDIATE",
+      "sourceProjectId": null,
       "document": null,
       "documentPage": null,
-      "status": "synthetic-test",
-      "voltageKv": 115,
-      "assetType": "synthetic test project",
-      "workType": "test scenario",
-      "sponsor": "Synthetic Test Data",
       "notes": [
-        "Synthetic edge-case record for dashboard and scoring tests; not source-verified.",
-        "SC side of a border-comparison pair."
-      ]
-    },
-    {
-      "id": "GPC_SYN_IMMEDIATE",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "Synthetic Immediate GPC",
-      "shortName": "Synthetic Immediate GPC",
-      "endpoints": [
-        {
-          "name": "Synthetic Immediate GPC A",
-          "coordinates": [
-            -81.982,
-            33.486
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Synthetic Immediate GPC B",
-          "coordinates": [
-            -81.953466,
-            33.492377
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2028-01-20",
-      "rawDate": "2028-01-20",
-      "sourceRow": 213,
-      "sourceProjectId": "GPC-SYN-IMMEDIATE",
-      "document": null,
-      "documentPage": null,
-      "status": "synthetic-test",
-      "voltageKv": 115,
-      "assetType": "synthetic test project",
-      "workType": "test scenario",
-      "sponsor": "Synthetic Test Data",
-      "notes": [
-        "Synthetic edge-case record for dashboard and scoring tests; not source-verified.",
-        "GA side of a border-comparison pair."
-      ]
-    },
-    {
-      "id": "DESC_SYN_LOCAL",
-      "utility": "DESC",
-      "state": "SC",
-      "name": "Synthetic Local DESC",
-      "shortName": "Synthetic Local DESC",
-      "endpoints": [
-        {
-          "name": "Synthetic Local DESC A",
-          "coordinates": [
-            -81.94,
-            33.53
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Synthetic Local DESC B",
-          "coordinates": [
-            -81.898016,
-            33.539378
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2029-03-01",
-      "rawDate": "2029-03-01",
-      "sourceRow": 214,
-      "sourceProjectId": "DESC-SYN-LOCAL",
-      "document": null,
-      "documentPage": null,
-      "status": "synthetic-test",
-      "voltageKv": 115,
-      "assetType": "synthetic test project",
-      "workType": "test scenario",
-      "sponsor": "Synthetic Test Data",
-      "notes": [
-        "Synthetic edge-case record for dashboard and scoring tests; not source-verified.",
-        "SC side of a one-to-five-mile comparison pair."
-      ]
-    },
-    {
-      "id": "GPC_SYN_LOCAL",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "Synthetic Local GPC",
-      "shortName": "Synthetic Local GPC",
-      "endpoints": [
-        {
-          "name": "Synthetic Local GPC A",
-          "coordinates": [
-            -81.98,
-            33.49
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Synthetic Local GPC B",
-          "coordinates": [
-            -81.906143,
-            33.506504
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2029-03-15",
-      "rawDate": "2029-03-15",
-      "sourceRow": 215,
-      "sourceProjectId": "GPC-SYN-LOCAL",
-      "document": null,
-      "documentPage": null,
-      "status": "synthetic-test",
-      "voltageKv": 115,
-      "assetType": "synthetic test project",
-      "workType": "test scenario",
-      "sponsor": "Synthetic Test Data",
-      "notes": [
-        "Synthetic edge-case record for dashboard and scoring tests; not source-verified.",
-        "GA side of a one-to-five-mile comparison pair."
-      ]
-    },
-    {
-      "id": "DESC_SYN_REGIONAL",
-      "utility": "DESC",
-      "state": "SC",
-      "name": "Synthetic Regional DESC",
-      "shortName": "Synthetic Regional DESC",
-      "endpoints": [
-        {
-          "name": "Synthetic Regional DESC A",
-          "coordinates": [
-            -81.12,
-            32.24
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Synthetic Regional DESC B",
-          "coordinates": [
-            -80.987594,
-            32.270008
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2030-06-01",
-      "rawDate": "2030-06-01",
-      "sourceRow": 216,
-      "sourceProjectId": "DESC-SYN-REGIONAL",
-      "document": null,
-      "documentPage": null,
-      "status": "synthetic-test",
-      "voltageKv": 115,
-      "assetType": "synthetic test project",
-      "workType": "test scenario",
-      "sponsor": "Synthetic Test Data",
-      "notes": [
-        "Synthetic edge-case record for dashboard and scoring tests; not source-verified.",
-        "SC side of a five-to-twenty-five-mile coastal comparison pair."
-      ]
-    },
-    {
-      "id": "GPC_SYN_REGIONAL",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "Synthetic Regional GPC",
-      "shortName": "Synthetic Regional GPC",
-      "endpoints": [
-        {
-          "name": "Synthetic Regional GPC A",
-          "coordinates": [
-            -81.12,
-            32.08
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Synthetic Regional GPC B",
-          "coordinates": [
-            -80.855653,
-            32.140016
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2030-09-01",
-      "rawDate": "2030-09-01",
-      "sourceRow": 217,
-      "sourceProjectId": "GPC-SYN-REGIONAL",
-      "document": null,
-      "documentPage": null,
-      "status": "synthetic-test",
-      "voltageKv": 115,
-      "assetType": "synthetic test project",
-      "workType": "test scenario",
-      "sponsor": "Synthetic Test Data",
-      "notes": [
-        "Synthetic edge-case record for dashboard and scoring tests; not source-verified.",
-        "GA side of a five-to-twenty-five-mile coastal comparison pair."
-      ]
-    },
-    {
-      "id": "DESC_SYN_EXCLUDED",
-      "utility": "DESC",
-      "state": "VA",
-      "name": "Synthetic Excluded Distance DESC",
-      "shortName": "Synthetic Excluded Distance DESC",
-      "endpoints": [
-        {
-          "name": "Synthetic Excluded Distance DESC A",
-          "coordinates": [
-            -77.45,
-            37.25
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Synthetic Excluded Distance DESC B",
-          "coordinates": [
-            -77.432413,
-            37.253751
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2031-01-01",
-      "rawDate": "2031-01-01",
-      "sourceRow": 218,
-      "sourceProjectId": "DESC-SYN-EXCLUDED",
-      "document": null,
-      "documentPage": null,
-      "status": "synthetic-test",
-      "voltageKv": 115,
-      "assetType": "synthetic test project",
-      "workType": "test scenario",
-      "sponsor": "Synthetic Test Data",
-      "notes": [
-        "Synthetic edge-case record for dashboard and scoring tests; not source-verified.",
-        "Far-field Dominion edge case."
-      ]
-    },
-    {
-      "id": "GPC_SYN_EXCLUDED",
-      "utility": "GPC",
-      "state": "FL",
-      "name": "Synthetic Excluded Distance GPC",
-      "shortName": "Synthetic Excluded Distance GPC",
-      "endpoints": [
-        {
-          "name": "Synthetic Excluded Distance GPC A",
-          "coordinates": [
-            -82.45,
-            30.55
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Synthetic Excluded Distance GPC B",
-          "coordinates": [
-            -82.433745,
-            30.553751
-          ],
-          "coordinateSource": "synthetic-test"
-        }
-      ],
-      "inServiceDate": "2031-01-01",
-      "rawDate": "2031-01-01",
-      "sourceRow": 219,
-      "sourceProjectId": "GPC-SYN-EXCLUDED",
-      "document": null,
-      "documentPage": null,
-      "status": "synthetic-test",
-      "voltageKv": 115,
-      "assetType": "synthetic test project",
-      "workType": "test scenario",
-      "sponsor": "Synthetic Test Data",
-      "notes": [
-        "Synthetic edge-case record for dashboard and scoring tests; not source-verified.",
-        "Far-field Georgia Power edge case."
-      ]
-    },
-    {
-      "id": "DESC_SYN_NO_DATE",
-      "utility": "DESC",
-      "state": "SC",
-      "name": "Synthetic Unknown Date DESC",
-      "shortName": "Synthetic Unknown Date DESC",
-      "endpoints": [
-        {
-          "name": "Synthetic Unknown Date DESC A",
-          "coordinates": [
-            -82.0,
-            32.9
-          ],
-          "coordinateSource": "synthetic-test"
-        },
-        {
-          "name": "Synthetic Unknown Date DESC B",
-          "coordinates": null,
-          "coordinateSource": "unresolved"
-        }
-      ],
-      "inServiceDate": null,
-      "rawDate": "",
-      "sourceRow": 220,
-      "sourceProjectId": "DESC-SYN-NO-DATE",
-      "document": null,
-      "documentPage": null,
-      "status": "synthetic-test",
-      "voltageKv": 115,
-      "assetType": "synthetic test project",
-      "workType": "test scenario",
-      "sponsor": "Synthetic Test Data",
-      "notes": [
-        "Synthetic edge-case record for dashboard and scoring tests; not source-verified.",
-        "Missing date edge case with one located endpoint."
-      ]
-    },
-    {
-      "id": "GPC_SYN_UNLOCATED",
-      "utility": "GPC",
-      "state": "GA",
-      "name": "Synthetic Unlocated GPC",
-      "shortName": "Synthetic Unlocated GPC",
-      "endpoints": [
-        {
-          "name": "Synthetic Unlocated GPC A",
-          "coordinates": null,
-          "coordinateSource": "unresolved"
-        },
-        {
-          "name": "Synthetic Unlocated GPC B",
-          "coordinates": null,
-          "coordinateSource": "unresolved"
-        }
-      ],
-      "inServiceDate": "2032-05-01",
-      "rawDate": "2032-05-01",
-      "sourceRow": 221,
-      "sourceProjectId": "GPC-SYN-UNLOCATED",
-      "document": null,
-      "documentPage": null,
-      "status": "synthetic-test",
-      "voltageKv": 115,
-      "assetType": "synthetic test project",
-      "workType": "test scenario",
-      "sponsor": "Synthetic Test Data",
-      "notes": [
-        "Synthetic edge-case record for dashboard and scoring tests; not source-verified.",
-        "No coordinates edge case."
+        "Coordinates supplied by the starter workbook; not independently location-verified."
       ]
     }
   ]

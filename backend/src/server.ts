@@ -8,7 +8,7 @@ const coordinate = z.tuple([z.number().min(-180).max(180), z.number().min(-90).m
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s => Number.isFinite(Date.parse(s)) && new Date(s).toISOString().slice(0, 10) === s);
 const endpoint = z.object({ name: z.string(), coordinates: coordinate });
 const project = z.object({
-  id: z.string(), utility: z.string().min(2), state: z.string(), name: z.string(), shortName: z.string(),
+  id: z.string(), utility: z.enum(['DESC', 'GPC', 'SCE', 'NCE', 'GAE', 'ALE', 'FLE']), state: z.string(), name: z.string(), shortName: z.string(),
   endpoints: z.tuple([endpoint, endpoint]), inServiceDate: date.nullable(), rawDate: z.string(), sourceRow: z.number(),
   sourceProjectId: z.string().nullable(), document: z.string().nullable(), documentPage: z.number().nullable(), notes: z.array(z.string()),
 });

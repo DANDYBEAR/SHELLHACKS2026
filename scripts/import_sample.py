@@ -106,18 +106,6 @@ def main() -> int:
         "Mitchell - North Tifton",
         "Jesup - Ludowici Primary",
     ]
-    desc_sources = {
-        "DESC_1": ("6809 E", 14),
-        "DESC_2": ("6810 A", 31),
-        "DESC_3": ("06367 D - G", 23),
-        "DESC_4": ("6807 B", 1),
-        "DESC_5": ("6808 S", 10),
-    }
-    document_by_utility = {
-        "DESC": "2024-2028-2million-and-above-project-descriptions.pdf",
-        "GPC": "2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf",
-    }
-
     projects = []
     headers = rows[0]
     for i, row in enumerate(rows[1:]):
@@ -138,12 +126,7 @@ def main() -> int:
             notes.append("One endpoint is missing. The located endpoint represents the project center.")
         if project_id in ["GPC_2", "GPC_3"]:
             notes.append("McIntosh coordinates differ by approximately 657 m between workbook records. Review before merging.")
-        if project_id == "DESC_1":
-            notes.append("Source project 6809 E; a similarly named project 6809 G is a separate record.")
-        if utility == "GPC":
-            notes.append("Date retained as labeled by the workbook. Georgia PDF uses Need Date; source terminology and disclosure markings require review before enrichment.")
 
-        source_project_id, page = desc_sources.get(project_id, (None, None))
         projects.append({
             "id": project_id,
             "utility": utility,
@@ -154,9 +137,9 @@ def main() -> int:
             "inServiceDate": iso_date,
             "rawDate": raw_date,
             "sourceRow": i + 2,
-            "sourceProjectId": source_project_id,
-            "document": document_by_utility[utility],
-            "documentPage": page,
+            "sourceProjectId": None,
+            "document": None,
+            "documentPage": None,
             "notes": notes,
         })
 

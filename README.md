@@ -29,7 +29,7 @@ frontend/       React UI, themes, map, timeline and exports
 backend/        Read-only Node HTTP API and startup validation
 db/data/        Canonical normalized sample, no database server required
 shared/         Types, distance calculations, tiers and ranking
-scripts/        Reproducible workbook/PDF import and test-data enrichment
+scripts/        Reproducible workbook import
 tests/          Geographic, date, ranking and sample reconciliation tests
 docs/           Updated implementation decisions and data provenance
 ```
@@ -39,8 +39,7 @@ docs/           Updated implementation decisions and data provenance
 ## Included behavior
 
 - Real zoomable map with OpenFreeMap street basemaps, Light/Dark/System themes and matching map styles.
-- Curated 40-project test fixture with 20 Dominion and 20 Georgia Power records.
-- Synthetic near/local/regional comparison examples across three distance tiers.
+- Ten supplied workbook project centers, six geographic matches, and three distance tiers.
 - Pair selection, map fit, street-level inspection, endpoint guides and optional 25-mile radius.
 - Search, tier/date/endpoint filters and coordination/nearest/date sorts.
 - Source evidence, incomplete-location notes, milestone timeline, JSON and print-to-PDF summaries.
@@ -50,13 +49,13 @@ No API key is needed. Basemap resources go through the local read-only API to av
 
 ## Data and interpretation
 
-The sample is a curated test fixture built from the supplied planning snapshot, ProjectListings PDFs, and generated edge-case records. Its reference date is 2026-09-26. Many coordinates are synthetic and marked as test data; Dominion records are kept out of Georgia, and Georgia Power records are kept out of South Carolina. Past planned dates do not prove completion.
+The sample is the supplied workbook planning snapshot, not verified current construction. Its reference date is 2026-09-26. Coordinates are not independently verified, four projects have only one located endpoint, and the McIntosh entries differ by about 657 meters. Past planned dates do not prove completion.
 
 The app draws project centers and explicitly unverified endpoint guides, not actual transmission routes. Date gaps are not confirmed construction overlaps. Scenarios indicate what to investigate, not confirmed savings or shared land.
 
 Read [the updated plan](docs/PLAN.md) and [data provenance](db/README.md) for the adopted rules and remaining work.
 
-To reload the supplied workbook, merge the ProjectListings PDFs, add synthetic test enrichment, and rebuild `db/data/gridlock.sqlite`, run:
+To reload the supplied workbook and rebuild `db/data/gridlock.sqlite`, run:
 
 ```powershell
 npm run data:refresh
