@@ -4,6 +4,7 @@ import type { GeoJSONSource, Map as MapInstance } from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { Expand, Layers, LocateFixed, RotateCcw } from 'lucide-react';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
+import usStates from '../data/us-states.json';
 import { center, EARTH_RADIUS_MI } from '../../../shared/analysis';
 import type { Coordinate, Opportunity, Project, Utility } from '../../../shared/types';
 
@@ -12,6 +13,7 @@ type Props = { projects: Project[]; pair: Opportunity | null; projectId: string 
 const styles = { light: import.meta.env.VITE_MAP_LIGHT_STYLE || '/api/basemap/styles/positron', dark: import.meta.env.VITE_MAP_DARK_STYLE || '/api/basemap/styles/dark' };
 maplibregl.setWorkerUrl(workerUrl);
 const empty: FeatureCollection = { type: 'FeatureCollection', features: [] };
+const usStatesData = usStates as FeatureCollection;
 const usView = { center: [-98.5795, 39.8283] as Coordinate, zoom: 3.15 };
 function radiusFeature(point: Coordinate): Feature {
   const [lon, lat] = point.map(n => n * Math.PI / 180), d = 25 / EARTH_RADIUS_MI;
@@ -95,6 +97,11 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     m.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
     m.addControl(new maplibregl.ScaleControl({ unit: 'imperial' }), 'bottom-left');
     m.on('style.load', () => {
+      const stateBorderColor = latest.current.theme === 'dark' ? '#cbd5e1' : '#26384d';
+      const stateBorderCasing = latest.current.theme === 'dark' ? '#0b111e' : '#ffffff';
+      m.addSource('us-states', { type: 'geojson', data: usStatesData });
+      m.addLayer({ id: 'us-state-border-casing', type: 'line', source: 'us-states', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': stateBorderCasing, 'line-opacity': latest.current.theme === 'dark' ? .72 : .82, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 2.4, 4, 2.9, 7, 3.5, 10, 4.2] } });
+      m.addLayer({ id: 'us-state-borders', type: 'line', source: 'us-states', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': stateBorderColor, 'line-opacity': latest.current.theme === 'dark' ? .9 : .88, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.2, 4, 1.55, 7, 2, 10, 2.6] } });
       m.addSource('radius', { type: 'geojson', data: empty });
       m.addLayer({ id: 'search-radius', type: 'fill', source: 'radius', paint: { 'fill-color': '#5585ff', 'fill-opacity': .07 } });
       m.addLayer({ id: 'radius-edge', type: 'line', source: 'radius', paint: { 'line-color': '#7299fa', 'line-width': 1, 'line-dasharray': [4, 4] } });

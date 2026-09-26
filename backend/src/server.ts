@@ -21,7 +21,7 @@ const mime: Record<string, string> = { '.html': 'text/html', '.js': 'text/javasc
 const basemapPrefix = '/api/basemap/';
 const tileHost = 'https://tiles.openfreemap.org/';
 const allowedBasemapPaths = /^(?:styles\/(?:positron|dark)(?:\/style\.json)?|planet(?:\/[a-zA-Z0-9_]+\/[0-9]+\/[0-9]+\/[0-9]+\.pbf)?|natural_earth\/ne2sr\/[0-9]+\/[0-9]+\/[0-9]+\.png|sprites\/[a-zA-Z0-9_./@-]+\.(?:json|png)|fonts\/[a-zA-Z0-9%+_., -]+\/[0-9]+-[0-9]+\.pbf)$/;
-type StyleDocument = { layers: Array<{ id: string; type: string; minzoom?: number; maxzoom?: number; paint?: Record<string, unknown>; layout?: Record<string, unknown>; ['source-layer']?: string }> };
+type StyleDocument = { layers: Array<{ id: string; type: string; minzoom?: number; maxzoom?: number; filter?: unknown; paint?: Record<string, unknown>; layout?: Record<string, unknown>; ['source-layer']?: string }> };
 function improveMapStyle(style: StyleDocument, theme: 'light' | 'dark') {
   const roads: Record<string, string> = {
     highway_path: '#293b52', highway_minor: '#31445d',
@@ -41,10 +41,16 @@ function improveMapStyle(style: StyleDocument, theme: 'light' | 'dark') {
     const boundaryKey = `${layer.id} ${layer['source-layer'] ?? ''}`.toLowerCase();
     if (layer.type === 'line' && (boundaryKey.includes('boundary') || boundaryKey.includes('admin'))) {
       layer.minzoom = 0;
-      layer.layout = { ...layer.layout, visibility: 'visible', 'line-cap': 'round', 'line-join': 'round' };
+      const isCountryBoundary = layer.id === 'boundary_2';
+      layer.layout = { ...layer.layout, visibility: isCountryBoundary ? 'visible' : 'none', 'line-cap': 'round', 'line-join': 'round' };
       const paint = { ...layer.paint };
       delete paint['line-dasharray'];
-      layer.paint = { ...paint, 'line-color': boundaryColor, 'line-opacity': theme === 'dark' ? .96 : .9, 'line-blur': 0, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.45, 4, 1.8, 7, 2.35, 10, 3.1] };
+      layer.paint = { ...paint, 'line-color': boundaryColor, 'line-opacity': theme === 'dark' ? .82 : .72, 'line-blur': 0, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, .9, 4, 1.1, 7, 1.45, 10, 2] };
+    }
+    if (layer.type === 'symbol' && layer['source-layer'] === 'place' && layer.id === 'label_state') layer.layout = { ...layer.layout, visibility: 'none' };
+    if (layer.type === 'symbol' && layer['source-layer'] === 'place' && layer.id.startsWith('label_city')) layer.minzoom = Math.max(layer.minzoom ?? 0, 5.5);
+    if (layer.type === 'symbol' && layer['source-layer'] === 'place' && layer.id.startsWith('label_country_')) {
+      layer.filter = ['all', layer.filter ?? true, ['==', ['coalesce', ['get', 'name_en'], ['get', 'name']], 'United States']];
     }
   }
   return style;
