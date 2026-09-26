@@ -52,6 +52,7 @@ function loadProjectsFromDb(): Dataset['projects'] {
 }
 const projects = loadProjectsFromDb();
 const workbookProjects = projects.filter(p => p.sourceRow <= 11);
+const ctpcProjects = projects.filter(p => p.utility === 'CTPC');
 describe('supplied workbook reconciliation', () => {
   it('reproduces all six distances, date gaps and 25 comparisons', () => {
     const pairs = calculateOpportunities(workbookProjects);
@@ -76,14 +77,20 @@ describe('supplied workbook reconciliation', () => {
     expect(calculateOpportunities(workbookProjects.map(p => ({ ...p, endpoints: [{ name: 'a', coordinates: null }, { name: 'b', coordinates: null }] })))).toHaveLength(0);
   });
 });
-describe('workbook-only dataset', () => {
-  it('contains only the ten spreadsheet projects and no PDF or synthetic records', () => {
+describe('dataset imports', () => {
+  it('keeps the ten spreadsheet projects intact and separate from CTPC rows', () => {
     expect(workbookProjects).toHaveLength(10);
-    expect(projects).toHaveLength(10);
-    expect(projects.filter(p => p.utility === 'DESC')).toHaveLength(5);
-    expect(projects.filter(p => p.utility === 'GPC')).toHaveLength(5);
-    expect(projects.every(p => p.document === null && p.documentPage === null && p.sourceProjectId === null)).toBe(true);
-    expect(projects.some(p => p.id.includes('_PDF_') || p.id.includes('_SYN_'))).toBe(false);
+    expect(workbookProjects.filter(p => p.utility === 'DESC')).toHaveLength(5);
+    expect(workbookProjects.filter(p => p.utility === 'GPC')).toHaveLength(5);
+    expect(workbookProjects.every(p => p.document === null && p.documentPage === null && p.sourceProjectId === null)).toBe(true);
+    expect(workbookProjects.some(p => p.id.includes('_PDF_') || p.id.includes('_SYN_'))).toBe(false);
+  });
+  it('promotes Gemini-parsed CTPC rows into searchable map projects', () => {
+    expect(ctpcProjects).toHaveLength(93);
+    expect(ctpcProjects.every(p => p.utility === 'CTPC')).toBe(true);
+    expect(ctpcProjects.every(p => p.document === '2025_Collaborative_Transmission_Plan_MidYear_Update_08-13-26.pdf')).toBe(true);
+    expect(ctpcProjects.every(p => p.sourceProjectId && !p.id.includes('REMOVED'))).toBe(true);
+    expect(ctpcProjects.filter(p => center(p)).length).toBeGreaterThan(60);
   });
 });
 describe('geographic and timing boundaries', () => {

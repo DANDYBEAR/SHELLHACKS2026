@@ -60,3 +60,11 @@ To reload the supplied workbook and rebuild `db/data/gridlock.sqlite`, run:
 ```powershell
 npm run data:refresh
 ```
+
+To parse the CTPC mid-year update PDF with Gemini and load clean, non-removed Reliability Project rows into SQLite, set `GEMINI_API_KEY` in `.env` or your shell, then run:
+
+```powershell
+npm run data:import-ctpc
+```
+
+Use `npm run data:refresh-all` when you want to rebuild the workbook tables and immediately rerun the Gemini CTPC import.

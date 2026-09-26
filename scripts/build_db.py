@@ -24,6 +24,7 @@ UTILITY_NAMES = {
     "GAE": "GA Electric",
     "ALE": "AL Electric",
     "FLE": "FL Electric",
+    "CTPC": "CarolinasTCP",
 }
 UTILITY_STATE_SCOPE = {
     "DESC": "SC",
@@ -33,6 +34,7 @@ UTILITY_STATE_SCOPE = {
     "GAE": "GA",
     "ALE": "AL",
     "FLE": "FL",
+    "CTPC": "NC/SC",
 }
 DOCUMENT_ROOT = ROOT / "ProjectListings"
 

@@ -1,18 +1,19 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import * as maplibregl from 'maplibre-gl';
-import type { GeoJSONSource, Map as MapInstance } from 'maplibre-gl';
+import type { ExpressionSpecification, GeoJSONSource, Map as MapInstance } from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { Expand, Layers, LocateFixed, RotateCcw } from 'lucide-react';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import usStates from '../data/us-states.json';
 import { center, EARTH_RADIUS_MI, MAX_COMPARISON_DISTANCE_MI } from '../../../shared/analysis';
-import type { Coordinate, Opportunity, Project, Utility } from '../../../shared/types';
+import { UTILITY_COLORS, utilityColor, utilityName, type Coordinate, type Opportunity, type Project, type Utility } from '../../../shared/types';
 
 export type DraftMapProject = { id: string; title: string; coordinates: Coordinate };
 export type MapHandle = { fitAll(): void; fitPair(): void; fitProjects(ids: string[]): void; focusProject(id: string): void; focusCoordinate(coordinates: Coordinate): void; setDraftProjects(projects: DraftMapProject[]): void };
 type Props = { projects: Project[]; pair: Opportunity | null; projectId: string | null; selectedProjectId: string | null; selectedUtility: Utility | null; theme: 'light' | 'dark'; onProject(id: string): void };
 const styles = { light: '/api/basemap/styles/positron', dark: '/api/basemap/styles/dark' };
 const styleUrl = (theme: 'light' | 'dark') => `${styles[theme]}?v=${Date.now()}`;
+const utilityColorExpression = ['match', ['get', 'utility'], ...Object.entries(UTILITY_COLORS).flat(), '#64748b'] as unknown as ExpressionSpecification;
 maplibregl.setWorkerUrl(workerUrl);
 const empty: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const usStatesData = usStates as FeatureCollection;
@@ -61,6 +62,8 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   const latest = useRef(props); latest.current = props;
   const [ready, setReady] = useState(false), [error, setError] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false), [radius, setRadius] = useState(false), [guides, setGuides] = useState(true);
+  const visibleUtilities = [...new Set(props.projects.map(p => p.utility))].sort((a, b) => utilityName(a).localeCompare(utilityName(b)));
+  const locatedProjects = props.projects.filter(p => center(p)).length;
   const settings = useRef({ radius, guides }); settings.current = { radius, guides };
   const resetUsView = (duration = 800) => {
     map.current?.easeTo({ center: usView.center, zoom: usView.zoom, bearing: 0, pitch: 0, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration });
@@ -146,11 +149,11 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       m.addLayer({ id: 'search-radius', type: 'fill', source: 'radius', paint: { 'fill-color': '#5585ff', 'fill-opacity': .07 } });
       m.addLayer({ id: 'radius-edge', type: 'line', source: 'radius', paint: { 'line-color': '#7299fa', 'line-width': 1, 'line-dasharray': [4, 4] } });
       m.addSource('gridlock', { type: 'geojson', data: empty });
-      m.addLayer({ id: 'endpoint-guides', type: 'line', source: 'gridlock', filter: ['==', 'kind', 'guide'], paint: { 'line-color': ['match', ['get', 'utility'], 'DESC', '#5388ff', '#f5a354'], 'line-width': 2, 'line-dasharray': [2, 3], 'line-opacity': .7 } });
+      m.addLayer({ id: 'endpoint-guides', type: 'line', source: 'gridlock', filter: ['==', 'kind', 'guide'], paint: { 'line-color': utilityColorExpression, 'line-width': 2, 'line-dasharray': [2, 3], 'line-opacity': .7 } });
       m.addLayer({ id: 'pair-connector', type: 'line', source: 'gridlock', filter: ['==', 'kind', 'connector'], paint: { 'line-color': '#a48aff', 'line-width': 3 } });
-      m.addLayer({ id: 'endpoint-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'endpoint'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5388ff', '#f5a354'], 'circle-radius': 4, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
-      m.addLayer({ id: 'project-halo', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5486ff', '#ee9649'], 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 14, ['boolean', ['get', 'utilityMatch'], false], 12, 10], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .08, .18] } });
-      m.addLayer({ id: 'project-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5486ff', '#ee9649'], 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 8, ['boolean', ['get', 'utilityMatch'], false], 7, 5], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .26, 1], 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      m.addLayer({ id: 'endpoint-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'endpoint'], paint: { 'circle-color': utilityColorExpression, 'circle-radius': 4, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      m.addLayer({ id: 'project-halo', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': utilityColorExpression, 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 14, ['boolean', ['get', 'utilityMatch'], false], 12, 10], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .08, .18] } });
+      m.addLayer({ id: 'project-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': utilityColorExpression, 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 8, ['boolean', ['get', 'utilityMatch'], false], 7, 5], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .26, 1], 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
       m.addLayer({ id: 'draft-project-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'draft'], paint: { 'circle-color': '#d94f3d', 'circle-radius': 9, 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
       m.addLayer({ id: 'draft-project-labels', type: 'symbol', source: 'gridlock', filter: ['==', 'kind', 'draft'], layout: { 'text-field': ['get', 'title'], 'text-size': 11, 'text-offset': [0, 1.6], 'text-anchor': 'top', 'text-allow-overlap': true }, paint: { 'text-color': '#243044', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
       m.addLayer({ id: 'project-hit-area', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': '#000000', 'circle-radius': 16, 'circle-opacity': 0 } });
@@ -177,7 +180,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   useEffect(() => { if (props.pair && !props.selectedProjectId) fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB)); }, [props.pair?.id, props.selectedProjectId]);
   return <div className="map-shell">
     <div ref={host} className="map-canvas" role="region" aria-label="Interactive map of transmission project centers" />
-    <div className="map-heading"><span className="eyebrow">PROJECT EXPLORER</span><h2>Georgia & South Carolina</h2><span className="map-subtitle">{props.pair ? 'Selected coordination opportunity' : '10 project centers · 2 utilities'}</span></div>
+    <div className="map-heading"><span className="eyebrow">PROJECT EXPLORER</span><h2>Carolinas, Georgia & South Carolina</h2><span className="map-subtitle">{props.pair ? 'Selected coordination opportunity' : `${locatedProjects} mapped centers · ${visibleUtilities.length} utilities`}</span></div>
     <div className="map-tools">
       <button className="map-button" title="Show full U.S." aria-label="Show full U.S." onClick={() => resetUsView()}><Expand size={17}/></button>
       {props.pair && <button className="map-button" title="Fit selected pair" aria-label="Fit selected pair" onClick={() => fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB))}><LocateFixed size={17}/></button>}
@@ -186,7 +189,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     {layersOpen && <div className="layers-popover"><strong>Map layers</strong><label><input type="checkbox" checked={guides} onChange={e => setGuides(e.target.checked)}/> Selected endpoints & guides</label><label><input type="checkbox" checked={radius} onChange={e => setRadius(e.target.checked)}/> 25 mi search radius</label><p>Radius draws 25 miles around each selected project center. Dashed guides are not verified routes.</p></div>}
     {!ready && !error && <div className="map-notice"><span className="spinner"/> Loading basemap</div>}
     {error && <div className="map-notice" role="status">Basemap unavailable. Project results are still accessible.<button className="text-button" onClick={() => { setError(false); map.current?.setStyle(styleUrl(props.theme), { diff: false }); }}><RotateCcw size={14}/> Retry map</button></div>}
-    <div className="map-legend"><span><i className="utility-dot desc"/> Dominion</span><span><i className="utility-dot gpc"/> Georgia Power</span>{props.pair && <span><i className="connector-key"/> Center distance</span>}</div>
+    <div className="map-legend">{visibleUtilities.map(utility => <span key={utility}><i className="utility-dot" style={{ background: utilityColor(utility) }}/>{utilityName(utility)}</span>)}{props.pair && <span><i className="connector-key"/> Center distance</span>}</div>
     <div className="map-method">Center locations · Routes unverified</div>
   </div>;
 });

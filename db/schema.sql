@@ -101,6 +101,22 @@ CREATE TABLE IF NOT EXISTS geo_contexts (
   notes TEXT
 );
 
+CREATE TABLE IF NOT EXISTS collaborative_transmission_projects (
+  project_id TEXT PRIMARY KEY,
+  reliability_project TEXT NOT NULL,
+  status TEXT NOT NULL,
+  transmission_owner TEXT NOT NULL,
+  estimated_in_service_date TEXT NOT NULL,
+  estimated_cost_million REAL NOT NULL,
+  source_file TEXT NOT NULL,
+  imported_at TEXT NOT NULL DEFAULT (datetime('now')),
+  CHECK (lower(status) <> 'removed')
+);
+
+CREATE INDEX IF NOT EXISTS idx_ctpc_owner ON collaborative_transmission_projects(transmission_owner);
+CREATE INDEX IF NOT EXISTS idx_ctpc_status ON collaborative_transmission_projects(status);
+CREATE INDEX IF NOT EXISTS idx_ctpc_eisd ON collaborative_transmission_projects(estimated_in_service_date);
+
 CREATE TABLE IF NOT EXISTS scoring_profiles (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,
