@@ -21,7 +21,7 @@ const mime: Record<string, string> = { '.html': 'text/html', '.js': 'text/javasc
 const basemapPrefix = '/api/basemap/';
 const tileHost = 'https://tiles.openfreemap.org/';
 const allowedBasemapPaths = /^(?:styles\/(?:positron|dark)(?:\/style\.json)?|planet(?:\/[a-zA-Z0-9_]+\/[0-9]+\/[0-9]+\/[0-9]+\.pbf)?|natural_earth\/ne2sr\/[0-9]+\/[0-9]+\/[0-9]+\.png|sprites\/[a-zA-Z0-9_./@-]+\.(?:json|png)|fonts\/[a-zA-Z0-9%+_., -]+\/[0-9]+-[0-9]+\.pbf)$/;
-type StyleDocument = { layers: Array<{ id: string; type: string; paint?: Record<string, unknown>; layout?: Record<string, unknown>; ['source-layer']?: string }> };
+type StyleDocument = { layers: Array<{ id: string; type: string; minzoom?: number; maxzoom?: number; paint?: Record<string, unknown>; layout?: Record<string, unknown>; ['source-layer']?: string }> };
 function improveMapStyle(style: StyleDocument, theme: 'light' | 'dark') {
   const roads: Record<string, string> = {
     highway_path: '#293b52', highway_minor: '#31445d',
@@ -40,7 +40,9 @@ function improveMapStyle(style: StyleDocument, theme: 'light' | 'dark') {
     }
     const boundaryKey = `${layer.id} ${layer['source-layer'] ?? ''}`.toLowerCase();
     if (layer.type === 'line' && (boundaryKey.includes('boundary') || boundaryKey.includes('admin'))) {
-      layer.paint = { ...layer.paint, 'line-color': boundaryColor, 'line-opacity': theme === 'dark' ? .75 : .62, 'line-width': ['interpolate', ['linear'], ['zoom'], 4, .7, 7, 1.05, 10, 1.6] };
+      layer.minzoom = 0;
+      layer.layout = { ...layer.layout, visibility: 'visible' };
+      layer.paint = { ...layer.paint, 'line-color': boundaryColor, 'line-opacity': theme === 'dark' ? .86 : .72, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, .8, 4, 1, 7, 1.25, 10, 1.75] };
     }
   }
   return style;

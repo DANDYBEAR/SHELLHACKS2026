@@ -12,6 +12,7 @@ type Props = { projects: Project[]; pair: Opportunity | null; projectId: string 
 const styles = { light: import.meta.env.VITE_MAP_LIGHT_STYLE || '/api/basemap/styles/positron', dark: import.meta.env.VITE_MAP_DARK_STYLE || '/api/basemap/styles/dark' };
 maplibregl.setWorkerUrl(workerUrl);
 const empty: FeatureCollection = { type: 'FeatureCollection', features: [] };
+const usView = { center: [-98.5795, 39.8283] as Coordinate, zoom: 3.15 };
 function radiusFeature(point: Coordinate): Feature {
   const [lon, lat] = point.map(n => n * Math.PI / 180), d = 25 / EARTH_RADIUS_MI;
   const coordinates: Coordinate[] = [];
@@ -29,6 +30,9 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   const [ready, setReady] = useState(false), [error, setError] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false), [radius, setRadius] = useState(false), [guides, setGuides] = useState(true);
   const settings = useRef({ radius, guides }); settings.current = { radius, guides };
+  const resetUsView = (duration = 800) => {
+    map.current?.easeTo({ center: usView.center, zoom: usView.zoom, bearing: 0, pitch: 0, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration });
+  };
   const fit = (projects: Project[], maxZoom = 12) => {
     const coords = projects.map(center).filter((p): p is Coordinate => p !== null);
     if (!coords.length || !map.current) return;
@@ -36,7 +40,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     map.current.fitBounds(bounds, { padding: { top: 110, bottom: 85, left: 65, right: 65 }, maxZoom, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 800 });
   };
   useImperativeHandle(ref, () => ({
-    fitAll: () => fit(latest.current.projects, 9),
+    fitAll: () => resetUsView(),
     fitPair: () => { const p = latest.current.pair; if (p) fit(latest.current.projects.filter(x => x.id === p.projectA || x.id === p.projectB)); },
     fitProjects: ids => fit(latest.current.projects.filter(p => ids.includes(p.id)), 9),
     focusProject: id => { const p = latest.current.projects.find(p => p.id === id); const c = p && center(p); if (c) map.current?.flyTo({ center: c, zoom: 14, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1000 }); },
@@ -85,7 +89,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   useEffect(() => {
     if (!host.current) return;
     let m: MapInstance;
-    try { m = new maplibregl.Map({ container: host.current, style: styles[latest.current.theme], center: [-81.7, 32.5], zoom: 6.6, maxZoom: 19, minZoom: 3, attributionControl: { compact: true } }); }
+    try { m = new maplibregl.Map({ container: host.current, style: styles[latest.current.theme], center: usView.center, zoom: usView.zoom, maxZoom: 19, minZoom: 2.4, attributionControl: { compact: true } }); }
     catch { setError(true); return; }
     map.current = m;
     m.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
@@ -111,7 +115,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       m.on('mouseleave', 'project-hit-area', () => { m.getCanvas().style.cursor = ''; });
       setReady(true); setError(false); update();
     });
-    m.on('load', () => fit(latest.current.projects, 9));
+    m.on('load', () => resetUsView(0));
     m.on('error', () => { if (map.current === m) setError(true); });
     m.on('idle', () => { if (map.current === m && m.areTilesLoaded()) setError(false); });
     const observer = new ResizeObserver(() => m.resize()); observer.observe(host.current);
@@ -126,7 +130,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     <div ref={host} className="map-canvas" role="region" aria-label="Interactive map of transmission project centers" />
     <div className="map-heading"><span className="eyebrow">PROJECT EXPLORER</span><h2>Georgia & South Carolina</h2><span className="map-subtitle">{props.pair ? 'Selected coordination opportunity' : '10 project centers · 2 utilities'}</span></div>
     <div className="map-tools">
-      <button className="map-button" title="Fit all projects" aria-label="Fit all projects" onClick={() => fit(props.projects, 9)}><Expand size={17}/></button>
+      <button className="map-button" title="Show full U.S." aria-label="Show full U.S." onClick={() => resetUsView()}><Expand size={17}/></button>
       {props.pair && <button className="map-button" title="Fit selected pair" aria-label="Fit selected pair" onClick={() => fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB))}><LocateFixed size={17}/></button>}
       <button className={`map-button ${layersOpen ? 'active' : ''}`} title="Map layers" aria-label="Map layers" aria-expanded={layersOpen} onClick={() => setLayersOpen(!layersOpen)}><Layers size={17}/></button>
     </div>
