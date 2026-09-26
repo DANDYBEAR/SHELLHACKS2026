@@ -12,7 +12,7 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>(savedTheme), [systemDark, setSystemDark] = useState(matchMedia('(prefers-color-scheme: dark)').matches);
   const [projectSearch, setProjectSearch] = useState(''), [tier, setTier] = useState(0), [sort, setSort] = useState('coordination');
   const [selectedUtility, setSelectedUtility] = useState<Utility | null>(null), [utilityOpen, setUtilityOpen] = useState(false), [utilityQuery, setUtilityQuery] = useState('');
-  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false), [activeSuggestion, setActiveSuggestion] = useState(-1);
   const [maxGap, setMaxGap] = useState('any'), [future, setFuture] = useState(false), [completeOnly, setCompleteOnly] = useState(false), [filtersOpen, setFiltersOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null), [projectId, setProjectId] = useState<string | null>(null), [notice, setNotice] = useState('');
   const map = useRef<MapHandle>(null), utilityMenu = useRef<HTMLDivElement>(null), projectSearchMenu = useRef<HTMLDivElement>(null);
@@ -46,6 +46,7 @@ export default function App() {
   const projectSuggestions = projectSearch.trim()
     ? sortedProjects.filter(p => `${p.id} ${p.shortName} ${p.name} ${UTILITY_NAMES[p.utility]}`.toLowerCase().includes(projectSearch.toLowerCase().trim())).slice(0, 7)
     : [];
+  useEffect(() => { setActiveSuggestion(projectSuggestions.length ? 0 : -1); }, [projectSearch, projectSuggestions.length]);
   const fitUtility = (utility: Utility | null) => {
     if (utility) map.current?.fitProjects(projects.filter(p => p.utility === utility).map(p => p.id));
     else map.current?.fitAll();
@@ -59,15 +60,23 @@ export default function App() {
       ?? sortedProjects.find(p => `${p.id} ${p.shortName} ${p.name}`.toLowerCase().includes(text))
       ?? null;
   };
-  const selectSearchProject = (project: Project) => {
+  const selectProjectContext = (project: Project, options: { focus?: boolean; notice?: boolean } = {}) => {
     setProjectSearch(project.shortName);
     setSelectedUtility(project.utility);
     setSuggestionsOpen(false);
-    setSelected(null);
-    setProjectId(project.id);
-    map.current?.focusProject(project.id);
-    setNotice(`Selected ${project.shortName}`);
+    setActiveSuggestion(-1);
+    const related = visible.find(p => p.projectA === project.id || p.projectB === project.id);
+    if (related) {
+      setSelected(related.id);
+      setProjectId(null);
+    } else {
+      setSelected(null);
+      setProjectId(project.id);
+    }
+    if (options.focus) map.current?.focusProject(project.id);
+    if (options.notice) setNotice(`Selected ${project.shortName}`);
   };
+  const selectSearchProject = (project: Project) => selectProjectContext(project, { focus: true, notice: true });
   const runProjectSearch = () => {
     const text = projectSearch.trim();
     if (!text) {
@@ -97,7 +106,7 @@ export default function App() {
   useEffect(() => { if (selected && !visible.some(p => p.id === selected)) setSelected(null); }, [visible, selected]);
   const selectedProjects = pair ? projects.filter(p => p.id === pair.projectA || p.id === pair.projectB) : [];
   const selectPair = (p: Opportunity) => { setSelected(p.id); setProjectId(null); };
-  const selectProject = (id: string) => { const related = visible.find(p => p.projectA === id || p.projectB === id); if (related) selectPair(related); else { setProjectId(id); setSelected(null); } };
+  const selectProject = (id: string) => { const project = byId.get(id); if (project) selectProjectContext(project); };
   const reset = () => { setTier(0); setMaxGap('any'); setFuture(false); setCompleteOnly(false); };
   const filterCount = Number(maxGap !== 'any') + Number(future) + Number(completeOnly);
   const exportPair = () => {
@@ -108,7 +117,7 @@ export default function App() {
   };
   return <>
     <div className="app-shell"><header className="app-header"><a className="brand" href="/" aria-label="Gridlock home"><span className="brand-mark"><Grid2X2 size={22}/></span><span>gridlock<span className="brand-period">.</span></span></a><div className="theme-control" aria-label="Color theme">{([{ value: 'light', Icon: Sun, label: 'Light theme' }, { value: 'dark', Icon: Moon, label: 'Dark theme' }, { value: 'system', Icon: Monitor, label: 'System theme' }] as const).map(({ value, Icon, label }) => <button key={value} title={label} aria-label={label} aria-pressed={theme === value} onClick={() => setTheme(value)}><Icon size={16}/></button>)}</div></header>
-    <div className="top-search-bar"><div className="project-search" ref={projectSearchMenu}><label className="search-box global-search"><Search size={17}/><input aria-label="Search projects" aria-expanded={suggestionsOpen} aria-controls="project-suggestions" placeholder="Search project name or ID, then press Enter" value={projectSearch} onFocus={() => setSuggestionsOpen(Boolean(projectSearch.trim()))} onChange={e => { setProjectSearch(e.target.value); setSuggestionsOpen(Boolean(e.target.value.trim())); }} onKeyDown={e => { if (e.key === 'Enter') runProjectSearch(); if (e.key === 'Escape') setSuggestionsOpen(false); }}/>{projectSearch && <button aria-label="Clear project search" onClick={clearProjectSearch}><X size={14}/></button>}</label>{suggestionsOpen && projectSuggestions.length > 0 && <div className="project-suggestions" id="project-suggestions" role="listbox">{projectSuggestions.map(p => <button key={p.id} role="option" onMouseDown={e => e.preventDefault()} onClick={() => selectSearchProject(p)}><strong>{p.shortName}</strong><span>{UTILITY_NAMES[p.utility]}</span><small>{p.id}</small></button>)}</div>}</div><div className="utility-picker" ref={utilityMenu}><button className="utility-trigger" aria-haspopup="listbox" aria-expanded={utilityOpen} onClick={() => setUtilityOpen(!utilityOpen)}><span>{selectedUtility ? UTILITY_NAMES[selectedUtility] : 'All utilities'}</span><ChevronDown size={14}/></button>{utilityOpen && <div className="utility-menu"><label className="utility-menu-search"><Search size={14}/><input autoFocus aria-label="Search utility companies" placeholder="Find utility company" value={utilityQuery} onChange={e => setUtilityQuery(e.target.value)}/></label><button className={!selectedUtility ? 'is-selected' : ''} role="option" aria-selected={!selectedUtility} onClick={() => chooseUtility(null)}>All utilities</button>{visibleUtilities.map(u => <button key={u.value} className={selectedUtility === u.value ? 'is-selected' : ''} role="option" aria-selected={selectedUtility === u.value} onClick={() => chooseUtility(u.value)}><span>{u.label}</span><small>{projects.filter(p => p.utility === u.value).length} projects</small></button>)}</div>}</div></div>
+    <div className="top-search-bar"><div className="project-search" ref={projectSearchMenu}><label className="search-box global-search"><Search size={17}/><input aria-label="Search projects" aria-expanded={suggestionsOpen} aria-controls="project-suggestions" aria-activedescendant={activeSuggestion >= 0 ? `project-suggestion-${projectSuggestions[activeSuggestion]?.id}` : undefined} placeholder="Search project name or ID, then press Enter" value={projectSearch} onFocus={() => setSuggestionsOpen(Boolean(projectSearch.trim()))} onChange={e => { setProjectSearch(e.target.value); setSuggestionsOpen(Boolean(e.target.value.trim())); }} onKeyDown={e => { if (e.key === 'ArrowDown' && projectSuggestions.length) { e.preventDefault(); setSuggestionsOpen(true); setActiveSuggestion(i => (i + 1) % projectSuggestions.length); } else if (e.key === 'ArrowUp' && projectSuggestions.length) { e.preventDefault(); setSuggestionsOpen(true); setActiveSuggestion(i => (i <= 0 ? projectSuggestions.length : i) - 1); } else if (e.key === 'Enter') { e.preventDefault(); if (suggestionsOpen && activeSuggestion >= 0 && projectSuggestions[activeSuggestion]) selectSearchProject(projectSuggestions[activeSuggestion]); else runProjectSearch(); } else if (e.key === 'Escape') { setSuggestionsOpen(false); setActiveSuggestion(-1); } }}/>{projectSearch && <button aria-label="Clear project search" onClick={clearProjectSearch}><X size={14}/></button>}</label>{suggestionsOpen && projectSuggestions.length > 0 && <div className="project-suggestions" id="project-suggestions" role="listbox">{projectSuggestions.map((p, i) => <button key={p.id} id={`project-suggestion-${p.id}`} className={i === activeSuggestion ? 'is-active' : ''} role="option" aria-selected={i === activeSuggestion} onMouseEnter={() => setActiveSuggestion(i)} onMouseDown={e => e.preventDefault()} onClick={() => selectSearchProject(p)}><strong>{p.shortName}</strong><span>{UTILITY_NAMES[p.utility]}</span><small>{p.id}</small></button>)}</div>}</div><div className="utility-picker" ref={utilityMenu}><button className="utility-trigger" aria-haspopup="listbox" aria-expanded={utilityOpen} onClick={() => setUtilityOpen(!utilityOpen)}><span>{selectedUtility ? UTILITY_NAMES[selectedUtility] : 'All utilities'}</span><ChevronDown size={14}/></button>{utilityOpen && <div className="utility-menu"><label className="utility-menu-search"><Search size={14}/><input autoFocus aria-label="Search utility companies" placeholder="Find utility company" value={utilityQuery} onChange={e => setUtilityQuery(e.target.value)}/></label><button className={!selectedUtility ? 'is-selected' : ''} role="option" aria-selected={!selectedUtility} onClick={() => chooseUtility(null)}>All utilities</button>{visibleUtilities.map(u => <button key={u.value} className={selectedUtility === u.value ? 'is-selected' : ''} role="option" aria-selected={selectedUtility === u.value} onClick={() => chooseUtility(u.value)}><span>{u.label}</span><small>{projects.filter(p => p.utility === u.value).length} projects</small></button>)}</div>}</div></div>
     {!data ? <main className="loading-screen">{error ? <><h2>Couldn’t load the project data</h2><p>Check that the local API is running, then try again.</p><button className="primary-button" onClick={() => { setError(false); setRetry(retry + 1); }}>Retry loading</button></> : <><span className="spinner"/><h2>Opening your workspace</h2><p>Loading the supplied planning snapshot.</p></>}</main> : <main className="workspace">
       <aside className="opportunities-panel"><div className="opportunity-heading"><div><span className="eyebrow">DISCOVER & COMPARE</span><h1>Opportunities <span>{data.opportunities.length}</span></h1></div><button className={`icon-button filter-toggle ${filtersOpen ? 'active' : ''}`} aria-label="Opportunity filters" aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}><SlidersHorizontal size={18}/>{filterCount > 0 && <i>{filterCount}</i>}</button></div>
       <div className="tier-filters" aria-label="Distance tier"><button aria-pressed={tier === 0} onClick={() => setTier(0)}>All <span>{data.opportunities.length}</span></button>{TIERS.map(t => <button key={t.id} aria-pressed={tier === t.id} title={`${t.name}: ${t.range}`} onClick={() => setTier(t.id)}>{t.name}<span>{data.opportunities.filter(p => p.tier === t.id).length}</span></button>)}</div>

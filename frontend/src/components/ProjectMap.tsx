@@ -85,8 +85,8 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       });
     }
     (m.getSource('gridlock') as GeoJSONSource).setData({ type: 'FeatureCollection', features });
-    const firstCenter = selectedProjects[0] && center(selectedProjects[0]);
-    (m.getSource('radius') as GeoJSONSource).setData(settings.current.radius && firstCenter ? { type: 'FeatureCollection', features: [radiusFeature(firstCenter)] } : empty);
+    const radiusCenters = selectedProjects.map(center).filter((c): c is Coordinate => c !== null);
+    (m.getSource('radius') as GeoJSONSource).setData(settings.current.radius && radiusCenters.length ? { type: 'FeatureCollection', features: radiusCenters.map(radiusFeature) } : empty);
   };
   useEffect(() => {
     if (!host.current) return;
@@ -141,7 +141,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       {props.pair && <button className="map-button" title="Fit selected pair" aria-label="Fit selected pair" onClick={() => fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB))}><LocateFixed size={17}/></button>}
       <button className={`map-button ${layersOpen ? 'active' : ''}`} title="Map layers" aria-label="Map layers" aria-expanded={layersOpen} onClick={() => setLayersOpen(!layersOpen)}><Layers size={17}/></button>
     </div>
-    {layersOpen && <div className="layers-popover"><strong>Map layers</strong><label><input type="checkbox" checked={guides} onChange={e => setGuides(e.target.checked)}/> Selected endpoints & guides</label><label><input type="checkbox" checked={radius} onChange={e => setRadius(e.target.checked)}/> 25 mi search radius</label><p>Radius uses the first selected project center. Dashed guides are not verified routes.</p></div>}
+    {layersOpen && <div className="layers-popover"><strong>Map layers</strong><label><input type="checkbox" checked={guides} onChange={e => setGuides(e.target.checked)}/> Selected endpoints & guides</label><label><input type="checkbox" checked={radius} onChange={e => setRadius(e.target.checked)}/> 25 mi search radius</label><p>Radius draws 25 miles around each selected project center. Dashed guides are not verified routes.</p></div>}
     {!ready && !error && <div className="map-notice"><span className="spinner"/> Loading basemap</div>}
     {error && <div className="map-notice" role="status">Basemap unavailable. Project results are still accessible.<button className="text-button" onClick={() => { setError(false); map.current?.setStyle(styles[props.theme], { diff: false }); }}><RotateCcw size={14}/> Retry map</button></div>}
     <div className="map-legend"><span><i className="utility-dot desc"/> Dominion</span><span><i className="utility-dot gpc"/> Georgia Power</span>{props.pair && <span><i className="connector-key"/> Center distance</span>}</div>
