@@ -2,11 +2,12 @@ import { describe, expect, it } from 'vitest';
 import data from '../db/data/projects.json';
 import { calculateOpportunities, candidateCount, center, dayGap, distanceMiles, rankOpportunities, tierForDistance } from '../shared/analysis';
 import type { Dataset, Opportunity, Project } from '../shared/types';
-const projects = (data as Dataset).projects;
+const projects = (data as unknown as Dataset).projects;
+const workbookProjects = projects.filter(p => p.sourceRow <= 11);
 describe('supplied workbook reconciliation', () => {
   it('reproduces all six distances, date gaps and 25 comparisons', () => {
-    const pairs = calculateOpportunities(projects);
-    expect(candidateCount(projects)).toBe(25);
+    const pairs = calculateOpportunities(workbookProjects);
+    expect(candidateCount(workbookProjects)).toBe(25);
     expect(pairs).toHaveLength(6);
     const expected = [
       ['DESC_2__GPC_1', 4.09, 3074], ['DESC_3__GPC_2', 5.65, 152],
@@ -23,16 +24,34 @@ describe('supplied workbook reconciliation', () => {
     expect(pairs.filter(p => p.tier === 3)).toHaveLength(5);
   });
   it('excludes same-utility and unlocated pairs', () => {
-    expect(calculateOpportunities(projects.filter(p => p.utility === 'DESC'))).toHaveLength(0);
-    expect(calculateOpportunities(projects.map(p => ({ ...p, endpoints: [{ name: 'a', coordinates: null }, { name: 'b', coordinates: null }] })))).toHaveLength(0);
+    expect(calculateOpportunities(workbookProjects.filter(p => p.utility === 'DESC'))).toHaveLength(0);
+    expect(calculateOpportunities(workbookProjects.map(p => ({ ...p, endpoints: [{ name: 'a', coordinates: null }, { name: 'b', coordinates: null }] })))).toHaveLength(0);
+  });
+});
+describe('ProjectListings PDF import', () => {
+  it('appends PDF records while preserving the ten workbook seed projects', () => {
+    expect(workbookProjects).toHaveLength(10);
+    expect(projects).toHaveLength(252);
+    expect(projects.filter(p => p.document === '2024-2028-2million-and-above-project-descriptions.pdf')).toHaveLength(44);
+    expect(projects.filter(p => p.document === '2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf')).toHaveLength(208);
+    expect(projects.find(p => p.sourceProjectId === '6809 E')?.documentPage).toBe(14);
+    expect(projects.find(p => p.sourceProjectId === '0167C-D')?.id).toBe('DESC_PDF_0167C_D');
+    expect(projects.find(p => p.sourceProjectId === '20785')?.id).toBe('GPC_PDF_20785');
+  });
+  it('leaves unresolved PDF-only projects off the map and reuses only known endpoint coordinates', () => {
+    const unresolved = projects.find(p => p.id === 'DESC_PDF_0167C_D')!;
+    expect(center(unresolved)).toBeNull();
+    const resolved = projects.find(p => p.id === 'GPC_PDF_21116')!;
+    expect(center(resolved)).toEqual([-81.209472, 32.248701]);
+    expect(calculateOpportunities(projects)).toHaveLength(21);
   });
 });
 describe('geographic and timing boundaries', () => {
   it.each([[0, 1], [.99999, 1], [1, 2], [4.99999, 2], [5, 3], [24.99999, 3], [25, null], [25.01, null], [-1, null], [NaN, null]])('classifies %s miles as tier %s', (distance, tier) => expect(tierForDistance(distance as number)).toBe(tier));
   it('uses complete endpoint coordinates, preserving legitimate zeroes', () => {
-    expect(center(projects[0])).toEqual([-82.051362, 33.562599]);
-    expect(center(projects[2])![0]).toBeCloseTo(-81.0785475, 7);
-    const p: Project = { ...projects[0], endpoints: [{ name: 'a', coordinates: [0, 0] }, { name: 'b', coordinates: null }] };
+    expect(center(workbookProjects[0])).toEqual([-82.051362, 33.562599]);
+    expect(center(workbookProjects[2])![0]).toBeCloseTo(-81.0785475, 7);
+    const p: Project = { ...workbookProjects[0], endpoints: [{ name: 'a', coordinates: [0, 0] }, { name: 'b', coordinates: null }] };
     expect(center(p)).toEqual([0, 0]);
   });
   it('computes symmetric distances and a known degree at the equator', () => {

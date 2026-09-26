@@ -3,7 +3,7 @@
 The prototype now has two local data representations:
 
 - `data/projects.json` remains the frontend/API-compatible normalized sample used by the current backend.
-- `data/gridlock.sqlite` is a generated local SQLite database for the next phase of scoring, ranking, enrichment and document parsing work. It is intentionally ignored by Git because it is reproducible from `data/projects.json` and `schema.sql`.
+- `data/gridlock.sqlite` is a generated local SQLite database for the next phase of scoring, ranking and enrichment work. It is intentionally ignored by Git because it is reproducible from `data/projects.json` and `schema.sql`.
 
 The backend still reads `projects.json` for `/api/dashboard`, `/api/projects` and `/api/opportunities`. The SQLite database is the new foundation for sequentially moving toward a full data-backed platform without changing the UI all at once.
 
@@ -15,23 +15,25 @@ From the project root:
 python scripts/build_db.py
 ```
 
-The script creates `db/data/gridlock.sqlite` with:
+The refresh scripts create `db/data/gridlock.sqlite` with:
 
-- 10 normalized projects
+- 252 normalized projects after merging workbook rows and ProjectListings PDF records
 - project endpoints and computed project centers
 - utilities
 - source document records
 - scoring profiles and parameter weights
 - scored utility-pair opportunities
-- internal extraction tables for future Gemini parsing
+- registered source document paths for the supplied PDFs
 
 ## Current source
 
-Source: user-supplied `Projects_Overlaps.xlsx`, `projects!A1:Q11`. Validation reference: `overlaps!A1:I7`. The importer preserves source row numbers, source date strings and missing endpoint coordinates, and converts Excel dates and date strings to ISO calendar dates. Coordinates are stored in GeoJSON longitude/latitude order.
+Source: user-supplied `Projects_Overlaps.xlsx`, `projects!A1:Q11`, plus PDFs under `ProjectListings/`. Validation reference: `overlaps!A1:I7`. The workbook importer preserves source row numbers, source date strings and missing endpoint coordinates, and converts Excel dates and date strings to ISO calendar dates. Coordinates are stored in GeoJSON longitude/latitude order.
+
+The PDF import extracts 44 Dominion pages and 208 Georgia ITS project detail pages. Existing workbook rows are enriched when source IDs or project names match, and PDF-only projects are appended. Endpoint coordinates are reused only from known workbook endpoint names; otherwise the project stays searchable but does not produce a map marker.
 
 Supporting Dominion references in the supplied `2024-2028-2million-and-above-project-descriptions.pdf`: DESC_1 page 14 (6809 E), DESC_2 page 31 (6810 A), DESC_3 page 23 (06367 D - G), DESC_4 page 1 (6807 B), DESC_5 page 10 (6808 S). The similarly named page-15 project 6809 G is distinct.
 
-Georgia records use only the organizer-provided workbook data. No Georgia PDF excerpts, restricted pages or source PDF binaries are included in the application.
+Georgia records use only the organizer-provided workbook data. The local PDF is registered in SQLite as a source document for test workflows, but its text is not parsed into project facts.
 
 ## Database model
 
@@ -47,10 +49,9 @@ Georgia records use only the organizer-provided workbook data. No Georgia PDF ex
 - `scoring_profiles`: named scoring models
 - `scoring_parameters`: weights for distance, timing, confidence and resource similarity
 - `opportunity_scores`: ranked utility-to-utility project pairs
-- `document_extractions`: internal Gemini/parser output storage
 - `dashboard_projects`: UI-safe project view
 
-The UI should continue to show project facts and rankings. It should not expose evidence explanations or raw parser output. `document_extractions` exists so the system can self-check and enrich records later without making source reasoning part of the user-facing dashboard.
+The UI should continue to show project facts and rankings. Source PDFs are registered as local documents, but project facts come from the workbook import until a separate review workflow promotes additional fields.
 
 ## TIGER/Line data
 
@@ -74,10 +75,10 @@ A good next step is to add a TIGER enrichment script that takes project centers 
 
 ## Regenerate JSON from the workbook
 
-To regenerate `projects.json`, install Python's `openpyxl` in your Python environment and run from the project root:
+To regenerate `projects.json` and rebuild SQLite from the supplied workbook, run from the project root:
 
 ```powershell
-python scripts/import_sample.py "C:\path\to\Projects_Overlaps.xlsx"
+npm run data:refresh
 ```
 
-The source workbook is read-only. The command regenerates only this project's normalized JSON. Run `python scripts/build_db.py` after replacing JSON.
+The source workbook is read-only. The importer uses Python's standard library and does not require `openpyxl`.

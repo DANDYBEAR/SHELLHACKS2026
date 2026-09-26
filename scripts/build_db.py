@@ -17,6 +17,15 @@ SOURCE = ROOT / "db" / "data" / "projects.json"
 OUTPUT = ROOT / "db" / "data" / "gridlock.sqlite"
 EARTH_RADIUS_MI = 3958.7613
 UTILITY_NAMES = {"DESC": "Dominion Energy SC", "GPC": "Georgia Power"}
+DOCUMENT_ROOT = ROOT / "ProjectListings"
+
+
+def document_path(utility_code: str, file_name: str | None) -> str | None:
+    if not file_name:
+        return None
+    folder = "Dominion Energy" if utility_code == "DESC" else "Georgia Power" if utility_code == "GPC" else ""
+    candidate = DOCUMENT_ROOT / folder / file_name
+    return str(candidate) if candidate.exists() else None
 
 
 def center(project: dict) -> tuple[float, float] | None:
@@ -79,8 +88,8 @@ def main() -> None:
         key = (project["utility"], doc_name)
         if doc_name and key not in documents:
             con.execute(
-                "INSERT INTO source_documents(dataset_id, utility_code, file_name, document_type, parser_status) VALUES (?, ?, ?, ?, ?)",
-                (dataset_id, project["utility"], doc_name, "pdf", "not_started"),
+                "INSERT INTO source_documents(dataset_id, utility_code, file_name, file_path, document_type, parser_status) VALUES (?, ?, ?, ?, ?, ?)",
+                (dataset_id, project["utility"], doc_name, document_path(project["utility"], doc_name), "pdf", "registered"),
             )
             documents[key] = con.execute("SELECT last_insert_rowid()").fetchone()[0]
         elif key not in documents:
@@ -93,13 +102,15 @@ def main() -> None:
             INSERT INTO projects(
               id, dataset_id, utility_code, state, name, short_name, source_row,
               source_project_id, in_service_date, raw_date, document_id, document_page,
+              status, voltage_kv, asset_type, work_type,
               location_confidence, date_confidence, resource_confidence
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 project["id"], dataset_id, project["utility"], project["state"], project["name"], project["shortName"],
                 project["sourceRow"], project.get("sourceProjectId"), project.get("inServiceDate"), project.get("rawDate"),
-                documents[key], project.get("documentPage"), location_confidence, 0.7 if project.get("inServiceDate") else 0.2, 0.5,
+                documents[key], project.get("documentPage"), project.get("status") or "planned", project.get("voltageKv"),
+                project.get("assetType"), project.get("workType"), location_confidence, 0.7 if project.get("inServiceDate") else 0.2, 0.5,
             ),
         )
         for index, endpoint in enumerate(project["endpoints"], start=1):

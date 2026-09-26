@@ -22,6 +22,20 @@ const basemapPrefix = '/api/basemap/';
 const tileHost = 'https://tiles.openfreemap.org/';
 const allowedBasemapPaths = /^(?:styles\/(?:positron|dark)(?:\/style\.json)?|planet(?:\/[a-zA-Z0-9_]+\/[0-9]+\/[0-9]+\/[0-9]+\.pbf)?|natural_earth\/ne2sr\/[0-9]+\/[0-9]+\/[0-9]+\.png|sprites\/[a-zA-Z0-9_./@-]+\.(?:json|png)|fonts\/[a-zA-Z0-9%+_., -]+\/[0-9]+-[0-9]+\.pbf)$/;
 type StyleDocument = { layers: Array<{ id: string; type: string; minzoom?: number; maxzoom?: number; filter?: unknown; paint?: Record<string, unknown>; layout?: Record<string, unknown>; ['source-layer']?: string }> };
+function fallbackMapStyle(theme: 'light' | 'dark') {
+  return {
+    version: 8,
+    name: `Gridlock ${theme} offline`,
+    sources: {},
+    layers: [
+      {
+        id: 'background',
+        type: 'background',
+        paint: { 'background-color': theme === 'dark' ? '#101827' : '#eef2f6' },
+      },
+    ],
+  };
+}
 function improveMapStyle(style: StyleDocument, theme: 'light' | 'dark') {
   const roads: Record<string, string> = {
     highway_path: '#293b52', highway_minor: '#31445d',
@@ -62,20 +76,34 @@ const server = createServer(async (req, res) => {
   if (path.startsWith(basemapPrefix)) {
     const resource = path.slice(basemapPrefix.length);
     if (!allowedBasemapPaths.test(resource) || resource.includes('..')) { res.writeHead(404); res.end('Unknown basemap resource'); return; }
+    const fallbackTheme = resource.startsWith('styles/dark') ? 'dark' : resource.startsWith('styles/positron') ? 'light' : null;
     try {
       const upstream = await fetch(tileHost + resource, { signal: AbortSignal.timeout(15000) });
-      if (!upstream.ok) { res.writeHead(upstream.status); res.end('Basemap provider unavailable'); return; }
+      if (!upstream.ok) {
+        if (fallbackTheme) {
+          res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+          res.end(JSON.stringify(fallbackMapStyle(fallbackTheme)));
+          return;
+        }
+        res.writeHead(upstream.status); res.end('Basemap provider unavailable'); return;
+      }
       const contentType = upstream.headers.get('content-type') ?? 'application/octet-stream';
       const isJson = contentType.includes('json') || resource.endsWith('.json') || resource.startsWith('styles/') || resource === 'planet';
       let content: Buffer;
       if (isJson) {
         const rewritten = (await upstream.text()).replaceAll(tileHost, basemapPrefix);
-        const theme = resource.startsWith('styles/dark') ? 'dark' : resource.startsWith('styles/positron') ? 'light' : null;
-        content = Buffer.from(theme ? JSON.stringify(improveMapStyle(JSON.parse(rewritten), theme)) : rewritten);
+        content = Buffer.from(fallbackTheme ? JSON.stringify(improveMapStyle(JSON.parse(rewritten), fallbackTheme)) : rewritten);
       } else content = Buffer.from(await upstream.arrayBuffer());
       res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': isJson ? 'public, max-age=3600' : 'public, max-age=86400' });
       res.end(content);
-    } catch { res.writeHead(502, { 'Content-Type': 'text/plain' }); res.end('Basemap provider unavailable'); }
+    } catch {
+      if (fallbackTheme) {
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify(fallbackMapStyle(fallbackTheme)));
+        return;
+      }
+      res.writeHead(502, { 'Content-Type': 'text/plain' }); res.end('Basemap provider unavailable');
+    }
     return;
   }
   const payload = path === '/api/dashboard' ? dashboard : path === '/api/projects' ? dataset.projects : path === '/api/opportunities' ? dashboard.opportunities : path === '/api/health' ? { status: 'ok' } : null;

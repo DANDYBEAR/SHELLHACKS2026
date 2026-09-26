@@ -28,8 +28,6 @@ CREATE TABLE IF NOT EXISTS source_documents (
   file_path TEXT,
   document_type TEXT NOT NULL DEFAULT 'unknown',
   parser_status TEXT NOT NULL DEFAULT 'pending',
-  parser_model TEXT,
-  parsed_at TEXT,
   UNIQUE (dataset_id, file_name)
 );
 
@@ -133,18 +131,6 @@ CREATE TABLE IF NOT EXISTS opportunity_scores (
 );
 
 CREATE INDEX IF NOT EXISTS idx_scores_rank ON opportunity_scores(dataset_id, profile_id, composite_score DESC, distance_tier, center_distance_mi);
-
-CREATE TABLE IF NOT EXISTS document_extractions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  document_id INTEGER NOT NULL REFERENCES source_documents(id) ON DELETE CASCADE,
-  project_id TEXT REFERENCES projects(id) ON DELETE SET NULL,
-  page_number INTEGER,
-  extraction_kind TEXT NOT NULL,
-  extracted_json TEXT NOT NULL,
-  confidence REAL DEFAULT 0.5 CHECK (confidence BETWEEN 0 AND 1),
-  review_status TEXT NOT NULL DEFAULT 'unreviewed',
-  created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
 
 CREATE VIEW IF NOT EXISTS dashboard_projects AS
 SELECT

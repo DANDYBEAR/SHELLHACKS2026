@@ -14,8 +14,9 @@
     "test:browser": "node tests/map-smoke.mjs",
     "start": "npm run start -w backend",
     "db:build": "python scripts/build_db.py",
-    "ai:dry-run": "python scripts/gemini_extract_documents.py --dry-run --project-listings \"C:\\Users\\jeffr\\Downloads\\OneDrive_2026-09-26\\ShellHacks 2026 - Gridlock\\Project Listings\"",
-    "ai:extract": "python scripts/gemini_extract_documents.py --project-listings \"C:\\Users\\jeffr\\Downloads\\OneDrive_2026-09-26\\ShellHacks 2026 - Gridlock\\Project Listings\""
+    "data:import-example": "python scripts/import_sample.py \"C:\\Users\\jeffr\\Downloads\\OneDrive_2026-09-26\\ShellHacks 2026 - Gridlock\\Projects_Overlaps.xlsx\"",
+    "data:import-pdfs": "python scripts/import_project_listings.py",
+    "data:refresh": "npm run data:import-example && npm run data:import-pdfs && npm run db:build"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

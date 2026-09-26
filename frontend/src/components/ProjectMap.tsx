@@ -11,6 +11,7 @@ import type { Coordinate, Opportunity, Project, Utility } from '../../../shared/
 export type MapHandle = { fitAll(): void; fitPair(): void; fitProjects(ids: string[]): void; focusProject(id: string): void };
 type Props = { projects: Project[]; pair: Opportunity | null; projectId: string | null; selectedProjectId: string | null; selectedUtility: Utility | null; theme: 'light' | 'dark'; onProject(id: string): void };
 const styles = { light: import.meta.env.VITE_MAP_LIGHT_STYLE || '/api/basemap/styles/positron', dark: import.meta.env.VITE_MAP_DARK_STYLE || '/api/basemap/styles/dark' };
+const styleUrl = (theme: 'light' | 'dark') => `${styles[theme]}?v=${Date.now()}`;
 maplibregl.setWorkerUrl(workerUrl);
 const empty: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const usStatesData = usStates as FeatureCollection;
@@ -92,7 +93,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   useEffect(() => {
     if (!host.current) return;
     let m: MapInstance;
-    try { m = new maplibregl.Map({ container: host.current, style: styles[latest.current.theme], center: usView.center, zoom: usView.zoom, maxZoom: 19, minZoom: 2.4, attributionControl: { compact: true } }); }
+    try { m = new maplibregl.Map({ container: host.current, style: styleUrl(latest.current.theme), center: usView.center, zoom: usView.zoom, maxZoom: 19, minZoom: 2.4, attributionControl: { compact: true } }); }
     catch { setError(true); return; }
     map.current = m;
     m.addControl(new maplibregl.NavigationControl({ showCompass: true }), 'bottom-right');
@@ -131,7 +132,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     return () => { clearTimeout(timer); observer.disconnect(); m.remove(); map.current = null; };
   }, []);
   const previousTheme = useRef(props.theme);
-  useEffect(() => { if (previousTheme.current !== props.theme && map.current) { previousTheme.current = props.theme; setReady(false); map.current.setStyle(styles[props.theme]); } }, [props.theme]);
+  useEffect(() => { if (previousTheme.current !== props.theme && map.current) { previousTheme.current = props.theme; setReady(false); map.current.setStyle(styleUrl(props.theme)); } }, [props.theme]);
   useEffect(() => { update(); }, [props.projects, props.pair, props.projectId, props.selectedProjectId, props.selectedUtility, ready, radius, guides]);
   useEffect(() => { if (props.pair && !props.selectedProjectId) fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB)); }, [props.pair?.id, props.selectedProjectId]);
   return <div className="map-shell">
@@ -144,7 +145,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     </div>
     {layersOpen && <div className="layers-popover"><strong>Map layers</strong><label><input type="checkbox" checked={guides} onChange={e => setGuides(e.target.checked)}/> Selected endpoints & guides</label><label><input type="checkbox" checked={radius} onChange={e => setRadius(e.target.checked)}/> 25 mi search radius</label><p>Radius draws 25 miles around each selected project center. Dashed guides are not verified routes.</p></div>}
     {!ready && !error && <div className="map-notice"><span className="spinner"/> Loading basemap</div>}
-    {error && <div className="map-notice" role="status">Basemap unavailable. Project results are still accessible.<button className="text-button" onClick={() => { setError(false); map.current?.setStyle(styles[props.theme], { diff: false }); }}><RotateCcw size={14}/> Retry map</button></div>}
+    {error && <div className="map-notice" role="status">Basemap unavailable. Project results are still accessible.<button className="text-button" onClick={() => { setError(false); map.current?.setStyle(styleUrl(props.theme), { diff: false }); }}><RotateCcw size={14}/> Retry map</button></div>}
     <div className="map-legend"><span><i className="utility-dot desc"/> Dominion</span><span><i className="utility-dot gpc"/> Georgia Power</span>{props.pair && <span><i className="connector-key"/> Center distance</span>}</div>
     <div className="map-method">Center locations · Routes unverified</div>
   </div>;

@@ -55,3 +55,9 @@ The sample is the supplied planning snapshot, not verified current construction.
 The app draws project centers and explicitly unverified endpoint guides, not actual transmission routes. Date gaps are not confirmed construction overlaps. Scenarios indicate what to investigate, not confirmed savings or shared land.
 
 Read [the updated plan](docs/PLAN.md) and [data provenance](db/README.md) for the adopted rules and remaining work.
+
+To reload the supplied workbook, merge the ProjectListings PDFs, and rebuild `db/data/gridlock.sqlite`, run:
+
+```powershell
+npm run data:refresh
+```
