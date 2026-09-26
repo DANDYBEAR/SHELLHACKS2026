@@ -5,10 +5,10 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { Expand, Layers, LocateFixed, RotateCcw } from 'lucide-react';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import { center, EARTH_RADIUS_MI } from '../../../shared/analysis';
-import type { Coordinate, Opportunity, Project } from '../../../shared/types';
+import type { Coordinate, Opportunity, Project, Utility } from '../../../shared/types';
 
-export type MapHandle = { fitAll(): void; fitPair(): void; focusProject(id: string): void };
-type Props = { projects: Project[]; pair: Opportunity | null; projectId: string | null; theme: 'light' | 'dark'; onProject(id: string): void };
+export type MapHandle = { fitAll(): void; fitPair(): void; fitProjects(ids: string[]): void; focusProject(id: string): void };
+type Props = { projects: Project[]; pair: Opportunity | null; projectId: string | null; selectedUtility: Utility | null; theme: 'light' | 'dark'; onProject(id: string): void };
 const styles = { light: import.meta.env.VITE_MAP_LIGHT_STYLE || '/api/basemap/styles/positron', dark: import.meta.env.VITE_MAP_DARK_STYLE || '/api/basemap/styles/dark' };
 maplibregl.setWorkerUrl(workerUrl);
 const empty: FeatureCollection = { type: 'FeatureCollection', features: [] };
@@ -38,11 +38,12 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   useImperativeHandle(ref, () => ({
     fitAll: () => fit(latest.current.projects, 9),
     fitPair: () => { const p = latest.current.pair; if (p) fit(latest.current.projects.filter(x => x.id === p.projectA || x.id === p.projectB)); },
+    fitProjects: ids => fit(latest.current.projects.filter(p => ids.includes(p.id)), 9),
     focusProject: id => { const p = latest.current.projects.find(p => p.id === id); const c = p && center(p); if (c) map.current?.flyTo({ center: c, zoom: 14, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1000 }); },
   }));
   const update = () => {
     const m = map.current; if (!m || !m.getSource('gridlock')) return;
-    const { projects, pair, projectId } = latest.current;
+    const { projects, pair, projectId, selectedUtility } = latest.current;
     const selected = pair ? [pair.projectA, pair.projectB] : projectId ? [projectId] : [];
     const features: Feature<Geometry>[] = [];
     const selectedProjects = projects.filter(p => selected.includes(p.id));
@@ -62,7 +63,8 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
           id: p.id,
           utility: p.utility,
           selected: selected.includes(p.id),
-          dimmed: selected.length > 0 && !selected.includes(p.id),
+          utilityMatch: selectedUtility === p.utility,
+          dimmed: selected.length > 0 ? !selected.includes(p.id) : selectedUtility !== null && selectedUtility !== p.utility,
         },
         geometry: { type: 'Point', coordinates: c },
       });
@@ -96,8 +98,8 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       m.addLayer({ id: 'endpoint-guides', type: 'line', source: 'gridlock', filter: ['==', 'kind', 'guide'], paint: { 'line-color': ['match', ['get', 'utility'], 'DESC', '#5388ff', '#f5a354'], 'line-width': 2, 'line-dasharray': [2, 3], 'line-opacity': .7 } });
       m.addLayer({ id: 'pair-connector', type: 'line', source: 'gridlock', filter: ['==', 'kind', 'connector'], paint: { 'line-color': '#a48aff', 'line-width': 3 } });
       m.addLayer({ id: 'endpoint-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'endpoint'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5388ff', '#f5a354'], 'circle-radius': 4, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
-      m.addLayer({ id: 'project-halo', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5486ff', '#ee9649'], 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 14, 11], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .12, .18] } });
-      m.addLayer({ id: 'project-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5486ff', '#ee9649'], 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 8, 6], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .42, 1], 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      m.addLayer({ id: 'project-halo', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5486ff', '#ee9649'], 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 14, ['boolean', ['get', 'utilityMatch'], false], 12, 10], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .08, .18] } });
+      m.addLayer({ id: 'project-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5486ff', '#ee9649'], 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 8, ['boolean', ['get', 'utilityMatch'], false], 7, 5], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .26, 1], 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
       m.addLayer({ id: 'project-hit-area', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': '#000000', 'circle-radius': 16, 'circle-opacity': 0 } });
       m.addLayer({ id: 'project-labels', type: 'symbol', source: 'gridlock', filter: ['all', ['==', 'kind', 'project'], ['==', ['get', 'selected'], true]], layout: { 'text-field': ['get', 'id'], 'text-size': 10, 'text-offset': [0, 1.9], 'text-anchor': 'top', 'text-allow-overlap': true }, paint: { 'text-color': '#243044', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
       m.addLayer({ id: 'distance-labels', type: 'symbol', source: 'gridlock', filter: ['==', 'kind', 'distance'], layout: { 'text-field': ['get', 'label'], 'text-size': 12, 'text-offset': [0, -1.8], 'text-anchor': 'bottom', 'text-allow-overlap': true }, paint: { 'text-color': '#243044', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
@@ -118,7 +120,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   }, []);
   const previousTheme = useRef(props.theme);
   useEffect(() => { if (previousTheme.current !== props.theme && map.current) { previousTheme.current = props.theme; setReady(false); map.current.setStyle(styles[props.theme]); } }, [props.theme]);
-  useEffect(() => { update(); }, [props.projects, props.pair, props.projectId, ready, radius, guides]);
+  useEffect(() => { update(); }, [props.projects, props.pair, props.projectId, props.selectedUtility, ready, radius, guides]);
   useEffect(() => { if (props.pair) fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB)); }, [props.pair?.id]);
   return <div className="map-shell">
     <div ref={host} className="map-canvas" role="region" aria-label="Interactive map of transmission project centers" />

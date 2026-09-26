@@ -21,18 +21,26 @@ const mime: Record<string, string> = { '.html': 'text/html', '.js': 'text/javasc
 const basemapPrefix = '/api/basemap/';
 const tileHost = 'https://tiles.openfreemap.org/';
 const allowedBasemapPaths = /^(?:styles\/(?:positron|dark)(?:\/style\.json)?|planet(?:\/[a-zA-Z0-9_]+\/[0-9]+\/[0-9]+\/[0-9]+\.pbf)?|natural_earth\/ne2sr\/[0-9]+\/[0-9]+\/[0-9]+\.png|sprites\/[a-zA-Z0-9_./@-]+\.(?:json|png)|fonts\/[a-zA-Z0-9%+_., -]+\/[0-9]+-[0-9]+\.pbf)$/;
-function improveDarkStyle(style: { layers: Array<{ id: string; type: string; paint?: Record<string, unknown> }> }) {
+type StyleDocument = { layers: Array<{ id: string; type: string; paint?: Record<string, unknown>; layout?: Record<string, unknown>; ['source-layer']?: string }> };
+function improveMapStyle(style: StyleDocument, theme: 'light' | 'dark') {
   const roads: Record<string, string> = {
     highway_path: '#293b52', highway_minor: '#31445d',
     highway_major_casing: '#26374c', highway_major_inner: '#40536b', highway_major_subtle: '#33465e',
     highway_motorway_casing: '#26374c', highway_motorway_inner: '#4b6079', highway_motorway_subtle: '#3a4e68',
     road_pier: '#364a62',
   };
+  const boundaryColor = theme === 'dark' ? '#d2daea' : '#59677c';
   for (const layer of style.layers) {
-    if (layer.id === 'background') layer.paint = { ...layer.paint, 'background-color': '#101827' };
-    if (roads[layer.id]) layer.paint = { ...layer.paint, 'line-color': roads[layer.id] };
-    if (layer.type === 'symbol' && layer.paint?.['text-color'] && !layer.id.startsWith('road_oneway')) {
-      layer.paint = { ...layer.paint, 'text-color': '#9aaac0', 'text-halo-color': '#101827' };
+    if (theme === 'dark') {
+      if (layer.id === 'background') layer.paint = { ...layer.paint, 'background-color': '#101827' };
+      if (roads[layer.id]) layer.paint = { ...layer.paint, 'line-color': roads[layer.id] };
+      if (layer.type === 'symbol' && layer.paint?.['text-color'] && !layer.id.startsWith('road_oneway')) {
+        layer.paint = { ...layer.paint, 'text-color': '#9aaac0', 'text-halo-color': '#101827' };
+      }
+    }
+    const boundaryKey = `${layer.id} ${layer['source-layer'] ?? ''}`.toLowerCase();
+    if (layer.type === 'line' && (boundaryKey.includes('boundary') || boundaryKey.includes('admin'))) {
+      layer.paint = { ...layer.paint, 'line-color': boundaryColor, 'line-opacity': theme === 'dark' ? .75 : .62, 'line-width': ['interpolate', ['linear'], ['zoom'], 4, .7, 7, 1.05, 10, 1.6] };
     }
   }
   return style;
@@ -52,7 +60,8 @@ const server = createServer(async (req, res) => {
       let content: Buffer;
       if (isJson) {
         const rewritten = (await upstream.text()).replaceAll(tileHost, basemapPrefix);
-        content = Buffer.from(resource === 'styles/dark' ? JSON.stringify(improveDarkStyle(JSON.parse(rewritten))) : rewritten);
+        const theme = resource.startsWith('styles/dark') ? 'dark' : resource.startsWith('styles/positron') ? 'light' : null;
+        content = Buffer.from(theme ? JSON.stringify(improveMapStyle(JSON.parse(rewritten), theme)) : rewritten);
       } else content = Buffer.from(await upstream.arrayBuffer());
       res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': isJson ? 'public, max-age=3600' : 'public, max-age=86400' });
       res.end(content);
