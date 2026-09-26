@@ -14,7 +14,7 @@ export default function App() {
   const [selectedUtility, setSelectedUtility] = useState<Utility | null>(null), [utilityOpen, setUtilityOpen] = useState(false), [utilityQuery, setUtilityQuery] = useState('');
   const [suggestionsOpen, setSuggestionsOpen] = useState(false), [activeSuggestion, setActiveSuggestion] = useState(-1);
   const [maxGap, setMaxGap] = useState('any'), [future, setFuture] = useState(false), [completeOnly, setCompleteOnly] = useState(false), [filtersOpen, setFiltersOpen] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null), [projectId, setProjectId] = useState<string | null>(null), [notice, setNotice] = useState('');
+  const [selected, setSelected] = useState<string | null>(null), [projectId, setProjectId] = useState<string | null>(null), [selectedProjectId, setSelectedProjectId] = useState<string | null>(null), [notice, setNotice] = useState('');
   const map = useRef<MapHandle>(null), utilityMenu = useRef<HTMLDivElement>(null), projectSearchMenu = useRef<HTMLDivElement>(null);
   const resolvedTheme = theme === 'system' ? systemDark ? 'dark' : 'light' : theme;
   useEffect(() => { const media = matchMedia('(prefers-color-scheme: dark)'); const change = () => setSystemDark(media.matches); media.addEventListener('change', change); return () => media.removeEventListener('change', change); }, []);
@@ -43,9 +43,9 @@ export default function App() {
   const utilityOptions = useMemo(() => ([...new Set(projects.map(p => p.utility))] as Utility[]).map(value => ({ value, label: UTILITY_NAMES[value] })).sort((a, b) => a.label.localeCompare(b.label)), [projects]);
   const visibleUtilities = utilityOptions.filter(u => `${u.label} ${u.value}`.toLowerCase().includes(utilityQuery.toLowerCase().trim()));
   const sortedProjects = useMemo(() => [...projects].sort((a, b) => a.shortName.localeCompare(b.shortName) || a.id.localeCompare(b.id)), [projects]);
-  const projectSuggestions = projectSearch.trim()
-    ? sortedProjects.filter(p => `${p.id} ${p.shortName} ${p.name} ${UTILITY_NAMES[p.utility]}`.toLowerCase().includes(projectSearch.toLowerCase().trim())).slice(0, 7)
-    : [];
+  const projectSuggestions = (projectSearch.trim()
+    ? sortedProjects.filter(p => `${p.id} ${p.shortName} ${p.name} ${UTILITY_NAMES[p.utility]}`.toLowerCase().includes(projectSearch.toLowerCase().trim()))
+    : sortedProjects).slice(0, 7);
   useEffect(() => { setActiveSuggestion(projectSuggestions.length ? 0 : -1); }, [projectSearch, projectSuggestions.length]);
   const fitUtility = (utility: Utility | null) => {
     if (utility) map.current?.fitProjects(projects.filter(p => p.utility === utility).map(p => p.id));
@@ -62,6 +62,7 @@ export default function App() {
   };
   const selectProjectContext = (project: Project, options: { focus?: boolean; notice?: boolean } = {}) => {
     setProjectSearch(project.shortName);
+    setSelectedProjectId(project.id);
     setSelectedUtility(project.utility);
     setSuggestionsOpen(false);
     setActiveSuggestion(-1);
@@ -80,7 +81,7 @@ export default function App() {
   const runProjectSearch = () => {
     const text = projectSearch.trim();
     if (!text) {
-      setSelected(null); setProjectId(null); fitUtility(selectedUtility);
+      setSelected(null); setProjectId(null); setSelectedProjectId(null); fitUtility(selectedUtility);
       return;
     }
     const match = matchProject(text);
@@ -88,11 +89,11 @@ export default function App() {
     selectSearchProject(match);
   };
   const clearProjectSearch = () => {
-    setProjectSearch(''); setSelected(null); setProjectId(null); fitUtility(selectedUtility);
+    setProjectSearch(''); setSelected(null); setProjectId(null); setSelectedProjectId(null); setActiveSuggestion(0); setSuggestionsOpen(true); fitUtility(selectedUtility);
   };
   const chooseUtility = (utility: Utility | null) => {
     setSelectedUtility(utility); setUtilityOpen(false); setUtilityQuery('');
-    if (!projectSearch.trim()) { setSelected(null); setProjectId(null); fitUtility(utility); }
+    if (!projectSearch.trim()) { setSelected(null); setProjectId(null); setSelectedProjectId(null); fitUtility(utility); }
   };
   const visible = useMemo(() => rankOpportunities((data?.opportunities ?? []).filter(pair => {
     const a = byId.get(pair.projectA)!, b = byId.get(pair.projectB)!;
@@ -105,8 +106,15 @@ export default function App() {
   const pair = visible.find(p => p.id === selected) ?? null;
   useEffect(() => { if (selected && !visible.some(p => p.id === selected)) setSelected(null); }, [visible, selected]);
   const selectedProjects = pair ? projects.filter(p => p.id === pair.projectA || p.id === pair.projectB) : [];
-  const selectPair = (p: Opportunity) => { setSelected(p.id); setProjectId(null); };
-  const selectProject = (id: string) => { const project = byId.get(id); if (project) selectProjectContext(project); };
+  const selectPair = (p: Opportunity) => { setSelected(p.id); setProjectId(null); setSelectedProjectId(null); };
+  const selectProject = (id: string) => {
+    const project = byId.get(id);
+    if (!project) return;
+    const related = visible.find(p => p.projectA === id || p.projectB === id);
+    selectProjectContext(project);
+    if (related) map.current?.fitProjects([related.projectA, related.projectB]);
+    else map.current?.focusProject(id);
+  };
   const reset = () => { setTier(0); setMaxGap('any'); setFuture(false); setCompleteOnly(false); };
   const filterCount = Number(maxGap !== 'any') + Number(future) + Number(completeOnly);
   const exportPair = () => {
@@ -125,7 +133,7 @@ export default function App() {
       <div className="sort-row"><span aria-live="polite">{visible.length} of {data.opportunities.length} matches</span><label><ArrowDownWideNarrow size={14}/><select aria-label="Sort opportunities" value={sort} onChange={e => setSort(e.target.value)}><option value="coordination">Tier + timing</option><option value="nearest">Nearest first</option><option value="timing">Closest dates</option></select><ChevronDown size={12}/></label></div>
       <div className="opportunity-list">{visible.map((p, i) => { const a = byId.get(p.projectA)!, b = byId.get(p.projectB)!; return <button key={p.id} className={`opportunity-card ${selected === p.id ? 'is-selected' : ''}`} aria-pressed={selected === p.id} onClick={() => selectPair(p)}><div className="card-top"><span className="rank-number">{String(i + 1).padStart(2, '0')}</span><span className={`tier-badge tier-${p.tier}`}>{TIERS[p.tier - 1].name}</span><ArrowRight className="card-arrow" size={15}/></div><div className="pair-name"><i className="utility-dot desc"/><strong>{a.shortName}</strong></div><div className="pair-name"><i className="utility-dot gpc"/><strong>{b.shortName}</strong></div><div className="card-metrics"><span><MapPin size={13}/><b>{p.distanceMi.toFixed(2)} mi</b></span><span><CalendarDays size={13}/>{p.timeGapDays?.toLocaleString() ?? 'Unknown'}{p.timeGapDays !== null ? ' days apart' : ''}</span></div><div className="card-footer">{TIERS[p.tier - 1].scenario}<span>{[a, b].every(x => x.endpoints.every(e => e.coordinates)) ? '2 endpoints each' : 'Partial locations'}</span></div></button>; })}{!visible.length && <div className="empty-results"><Search size={28}/><h3>No matching opportunities</h3><p>{future ? 'All Dominion sample dates precede the reference date. Try the full planning snapshot.' : tier === 1 ? 'The supplied sample has no pairs under 1 mile. Try Local or Regional.' : 'Try a different search or broaden your filters.'}</p><button className="secondary-button" onClick={reset}>Clear filters</button></div>}</div>
       <div className="list-footnote"><CircleHelp size={15}/><span>Ranked by tier, then date gap.<br/>Only pairs under 25 mi qualify.</span></div></aside>
-      <section className="map-column"><ProjectMap ref={map} projects={projects} pair={pair} projectId={projectId} selectedUtility={selectedUtility} theme={resolvedTheme} onProject={selectProject}/><div className="map-status"><span>{projects.length} projects · {data.candidateCount} cross-utility comparisons</span><span>Source: {data.source}</span></div></section>
+      <section className="map-column"><ProjectMap ref={map} projects={projects} pair={pair} projectId={projectId} selectedProjectId={selectedProjectId} selectedUtility={selectedUtility} theme={resolvedTheme} onProject={selectProject}/><div className="map-status"><span>{projects.length} projects · {data.candidateCount} cross-utility comparisons</span><span>Source: {data.source}</span></div></section>
       <Details pair={pair} projects={projects} inspected={projects.find(p => p.id === projectId) ?? null} onClose={() => { setSelected(null); setProjectId(null); }} onZoom={id => map.current?.focusProject(id)} onExport={exportPair} onPrint={() => window.print()}/>
     </main>}
     {notice && <div className="toast" role="status"><Check size={17}/>{notice}</div>}

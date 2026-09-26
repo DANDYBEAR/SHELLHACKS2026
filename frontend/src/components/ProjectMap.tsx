@@ -5,18 +5,18 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { Expand, Layers, LocateFixed, RotateCcw } from 'lucide-react';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import usStates from '../data/us-states.json';
-import { center, EARTH_RADIUS_MI } from '../../../shared/analysis';
+import { center, EARTH_RADIUS_MI, MAX_COMPARISON_DISTANCE_MI } from '../../../shared/analysis';
 import type { Coordinate, Opportunity, Project, Utility } from '../../../shared/types';
 
 export type MapHandle = { fitAll(): void; fitPair(): void; fitProjects(ids: string[]): void; focusProject(id: string): void };
-type Props = { projects: Project[]; pair: Opportunity | null; projectId: string | null; selectedUtility: Utility | null; theme: 'light' | 'dark'; onProject(id: string): void };
+type Props = { projects: Project[]; pair: Opportunity | null; projectId: string | null; selectedProjectId: string | null; selectedUtility: Utility | null; theme: 'light' | 'dark'; onProject(id: string): void };
 const styles = { light: import.meta.env.VITE_MAP_LIGHT_STYLE || '/api/basemap/styles/positron', dark: import.meta.env.VITE_MAP_DARK_STYLE || '/api/basemap/styles/dark' };
 maplibregl.setWorkerUrl(workerUrl);
 const empty: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const usStatesData = usStates as FeatureCollection;
 const usView = { center: [-98.5795, 39.8283] as Coordinate, zoom: 3.15 };
 function radiusFeature(point: Coordinate): Feature {
-  const [lon, lat] = point.map(n => n * Math.PI / 180), d = 25 / EARTH_RADIUS_MI;
+  const [lon, lat] = point.map(n => n * Math.PI / 180), d = MAX_COMPARISON_DISTANCE_MI / EARTH_RADIUS_MI;
   const coordinates: Coordinate[] = [];
   for (let n = 0; n <= 96; n++) {
     const bearing = n / 96 * 2 * Math.PI;
@@ -45,7 +45,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     fitAll: () => resetUsView(),
     fitPair: () => { const p = latest.current.pair; if (p) fit(latest.current.projects.filter(x => x.id === p.projectA || x.id === p.projectB)); },
     fitProjects: ids => fit(latest.current.projects.filter(p => ids.includes(p.id)), 9),
-    focusProject: id => { const p = latest.current.projects.find(p => p.id === id); const c = p && center(p); if (c) map.current?.flyTo({ center: c, zoom: 14, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1000 }); },
+    focusProject: id => { const p = latest.current.projects.find(p => p.id === id); const c = p && center(p); if (c) map.current?.flyTo({ center: c, zoom: 8.7, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1000 }); },
   }));
   const update = () => {
     const m = map.current; if (!m || !m.getSource('gridlock')) return;
@@ -85,8 +85,9 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       });
     }
     (m.getSource('gridlock') as GeoJSONSource).setData({ type: 'FeatureCollection', features });
-    const radiusCenters = selectedProjects.map(center).filter((c): c is Coordinate => c !== null);
-    (m.getSource('radius') as GeoJSONSource).setData(settings.current.radius && radiusCenters.length ? { type: 'FeatureCollection', features: radiusCenters.map(radiusFeature) } : empty);
+    const radiusProject = projects.find(p => p.id === (latest.current.selectedProjectId ?? projectId ?? (pair ? pair.projectA : null)));
+    const radiusCenter = radiusProject ? center(radiusProject) : null;
+    (m.getSource('radius') as GeoJSONSource).setData(settings.current.radius && radiusCenter ? { type: 'FeatureCollection', features: [radiusFeature(radiusCenter)] } : empty);
   };
   useEffect(() => {
     if (!host.current) return;
@@ -131,8 +132,8 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   }, []);
   const previousTheme = useRef(props.theme);
   useEffect(() => { if (previousTheme.current !== props.theme && map.current) { previousTheme.current = props.theme; setReady(false); map.current.setStyle(styles[props.theme]); } }, [props.theme]);
-  useEffect(() => { update(); }, [props.projects, props.pair, props.projectId, props.selectedUtility, ready, radius, guides]);
-  useEffect(() => { if (props.pair) fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB)); }, [props.pair?.id]);
+  useEffect(() => { update(); }, [props.projects, props.pair, props.projectId, props.selectedProjectId, props.selectedUtility, ready, radius, guides]);
+  useEffect(() => { if (props.pair && !props.selectedProjectId) fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB)); }, [props.pair?.id, props.selectedProjectId]);
   return <div className="map-shell">
     <div ref={host} className="map-canvas" role="region" aria-label="Interactive map of transmission project centers" />
     <div className="map-heading"><span className="eyebrow">PROJECT EXPLORER</span><h2>Georgia & South Carolina</h2><span className="map-subtitle">{props.pair ? 'Selected coordination opportunity' : '10 project centers · 2 utilities'}</span></div>

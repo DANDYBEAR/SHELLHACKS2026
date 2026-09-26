@@ -1,5 +1,6 @@
 import type { Coordinate, Opportunity, Project, Tier } from './types';
 export const EARTH_RADIUS_MI = 3958.7613;
+export const MAX_COMPARISON_DISTANCE_MI = 25;
 export function center(project: Project): Coordinate | null {
   const points = project.endpoints.map(e => e.coordinates).filter((p): p is Coordinate => p !== null);
   if (!points.length) return null;
@@ -12,7 +13,7 @@ export function distanceMiles(a: Coordinate, b: Coordinate): number {
   return 2 * EARTH_RADIUS_MI * Math.asin(Math.sqrt(Math.min(1, Math.max(0, h))));
 }
 export function tierForDistance(distance: number): Tier | null {
-  if (!Number.isFinite(distance) || distance < 0 || distance >= 25) return null;
+  if (!Number.isFinite(distance) || distance < 0 || distance >= MAX_COMPARISON_DISTANCE_MI) return null;
   return distance < 1 ? 1 : distance < 5 ? 2 : 3;
 }
 export function dayGap(a: string | null, b: string | null): number | null {
