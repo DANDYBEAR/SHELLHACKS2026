@@ -3,13 +3,19 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "workspaces": ["frontend", "backend"],
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
     "dev": "concurrently -k -n api,web -c cyan,blue \"npm run dev -w backend\" \"npm run dev -w frontend\"",
     "build": "tsc --noEmit && npm run build -w frontend",
     "test": "vitest run",
     "test:browser": "node tests/map-smoke.mjs",
-    "start": "npm run start -w backend"
+    "start": "npm run start -w backend",
+    "db:build": "python scripts/build_db.py",
+    "ai:dry-run": "python scripts/gemini_extract_documents.py --dry-run --project-listings \"C:\\Users\\jeffr\\Downloads\\OneDrive_2026-09-26\\ShellHacks 2026 - Gridlock\\Project Listings\"",
+    "ai:extract": "python scripts/gemini_extract_documents.py --project-listings \"C:\\Users\\jeffr\\Downloads\\OneDrive_2026-09-26\\ShellHacks 2026 - Gridlock\\Project Listings\""
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
