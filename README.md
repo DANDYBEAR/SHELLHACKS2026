@@ -7,7 +7,6 @@ A local working dashboard for the ShellHacks Gridlock challenge. React frontend,
 Requires Node.js 22 or newer and npm.
 
 ```powershell
-cd gridlock-prototype
 npm install
 npm run dev
 ```

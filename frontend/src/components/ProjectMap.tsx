@@ -8,7 +8,8 @@ import usStates from '../data/us-states.json';
 import { center, EARTH_RADIUS_MI, MAX_COMPARISON_DISTANCE_MI } from '../../../shared/analysis';
 import type { Coordinate, Opportunity, Project, Utility } from '../../../shared/types';
 
-export type MapHandle = { fitAll(): void; fitPair(): void; fitProjects(ids: string[]): void; focusProject(id: string): void };
+export type DraftMapProject = { id: string; title: string; coordinates: Coordinate };
+export type MapHandle = { fitAll(): void; fitPair(): void; fitProjects(ids: string[]): void; focusProject(id: string): void; focusCoordinate(coordinates: Coordinate): void; setDraftProjects(projects: DraftMapProject[]): void };
 type Props = { projects: Project[]; pair: Opportunity | null; projectId: string | null; selectedProjectId: string | null; selectedUtility: Utility | null; theme: 'light' | 'dark'; onProject(id: string): void };
 const styles = { light: import.meta.env.VITE_MAP_LIGHT_STYLE || '/api/basemap/styles/positron', dark: import.meta.env.VITE_MAP_DARK_STYLE || '/api/basemap/styles/dark' };
 const styleUrl = (theme: 'light' | 'dark') => `${styles[theme]}?v=${Date.now()}`;
@@ -29,6 +30,7 @@ function radiusFeature(point: Coordinate): Feature {
 }
 export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   const host = useRef<HTMLDivElement>(null), map = useRef<MapInstance | null>(null);
+  const draftProjects = useRef<DraftMapProject[]>([]);
   const latest = useRef(props); latest.current = props;
   const [ready, setReady] = useState(false), [error, setError] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false), [radius, setRadius] = useState(false), [guides, setGuides] = useState(true);
@@ -47,6 +49,8 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     fitPair: () => { const p = latest.current.pair; if (p) fit(latest.current.projects.filter(x => x.id === p.projectA || x.id === p.projectB)); },
     fitProjects: ids => fit(latest.current.projects.filter(p => ids.includes(p.id)), 9),
     focusProject: id => { const p = latest.current.projects.find(p => p.id === id); const c = p && center(p); if (c) map.current?.flyTo({ center: c, zoom: 8.7, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1000 }); },
+    focusCoordinate: coordinates => map.current?.flyTo({ center: coordinates, zoom: 8.7, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1000 }),
+    setDraftProjects: projects => { draftProjects.current = projects; update(); },
   }));
   const update = () => {
     const m = map.current; if (!m || !m.getSource('gridlock')) return;
@@ -75,6 +79,9 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
         },
         geometry: { type: 'Point', coordinates: c },
       });
+    }
+    for (const draft of draftProjects.current) {
+      features.push({ type: 'Feature', properties: { kind: 'draft', id: draft.id, title: draft.title }, geometry: { type: 'Point', coordinates: draft.coordinates } });
     }
     if (pair && selectedProjects.length === 2) {
       const a = center(selectedProjects[0])!, b = center(selectedProjects[1])!;
@@ -113,6 +120,8 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       m.addLayer({ id: 'endpoint-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'endpoint'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5388ff', '#f5a354'], 'circle-radius': 4, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
       m.addLayer({ id: 'project-halo', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5486ff', '#ee9649'], 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 14, ['boolean', ['get', 'utilityMatch'], false], 12, 10], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .08, .18] } });
       m.addLayer({ id: 'project-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': ['match', ['get', 'utility'], 'DESC', '#5486ff', '#ee9649'], 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 8, ['boolean', ['get', 'utilityMatch'], false], 7, 5], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .26, 1], 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      m.addLayer({ id: 'draft-project-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'draft'], paint: { 'circle-color': '#d94f3d', 'circle-radius': 9, 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
+      m.addLayer({ id: 'draft-project-labels', type: 'symbol', source: 'gridlock', filter: ['==', 'kind', 'draft'], layout: { 'text-field': ['get', 'title'], 'text-size': 11, 'text-offset': [0, 1.6], 'text-anchor': 'top', 'text-allow-overlap': true }, paint: { 'text-color': '#243044', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
       m.addLayer({ id: 'project-hit-area', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': '#000000', 'circle-radius': 16, 'circle-opacity': 0 } });
       m.addLayer({ id: 'project-labels', type: 'symbol', source: 'gridlock', filter: ['all', ['==', 'kind', 'project'], ['==', ['get', 'selected'], true]], layout: { 'text-field': ['get', 'id'], 'text-size': 10, 'text-offset': [0, 1.9], 'text-anchor': 'top', 'text-allow-overlap': true }, paint: { 'text-color': '#243044', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
       m.addLayer({ id: 'distance-labels', type: 'symbol', source: 'gridlock', filter: ['==', 'kind', 'distance'], layout: { 'text-field': ['get', 'label'], 'text-size': 12, 'text-offset': [0, -1.8], 'text-anchor': 'bottom', 'text-allow-overlap': true }, paint: { 'text-color': '#243044', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
