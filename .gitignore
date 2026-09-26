@@ -9,3 +9,5 @@ playwright-report/
 work/
 *.log
 *.sqlite
+!db/data/
+!db/data/gridlock.sqlite
