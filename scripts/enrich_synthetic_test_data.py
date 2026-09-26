@@ -8,11 +8,13 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import copy
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "db" / "data" / "projects.json"
+CATALOG = ROOT / "db" / "data" / "project-catalog.json"
 WORK = ROOT / "work"
 TARGET_PER_UTILITY = 20
 EDGE_CASES_PER_UTILITY = 5
@@ -223,6 +225,14 @@ def add_edge_cases(projects: list[dict[str, Any]]) -> int:
 
 def main() -> int:
     data = json.loads(DATA.read_text(encoding="utf-8"))
+    catalog = copy.deepcopy(data)
+    catalog["projects"] = [
+        project for project in catalog["projects"]
+        if not project["id"].startswith(("DESC_SYN_", "GPC_SYN_"))
+    ]
+    catalog["name"] = "Full workbook and ProjectListings catalogue"
+    catalog["source"] = "Projects_Overlaps.xlsx + complete ProjectListings PDF extraction"
+    CATALOG.write_text(json.dumps(catalog, ensure_ascii=False, indent=2), encoding="utf-8")
     trim_stats = trim_projects(data["projects"])
     stats = enrich_pdf_projects(data["projects"])
     stats["synthetic_edge_projects"] = add_edge_cases(data["projects"])

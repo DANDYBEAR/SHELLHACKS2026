@@ -8,7 +8,7 @@ const coordinate = z.tuple([z.number().min(-180).max(180), z.number().min(-90).m
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s => Number.isFinite(Date.parse(s)) && new Date(s).toISOString().slice(0, 10) === s);
 const endpoint = z.object({ name: z.string(), coordinates: coordinate });
 const project = z.object({
-  id: z.string(), utility: z.string().min(2), state: z.string(), name: z.string(), shortName: z.string(),
+  id: z.string(), utility: z.enum(['DESC', 'GPC', 'SCE', 'NCE', 'GAE', 'ALE', 'FLE']), state: z.string(), name: z.string(), shortName: z.string(),
   endpoints: z.tuple([endpoint, endpoint]), inServiceDate: date.nullable(), rawDate: z.string(), sourceRow: z.number(),
   sourceProjectId: z.string().nullable(), document: z.string().nullable(), documentPage: z.number().nullable(), notes: z.array(z.string()),
 });
@@ -104,6 +104,14 @@ const server = createServer(async (req, res) => {
       }
       res.writeHead(502, { 'Content-Type': 'text/plain' }); res.end('Basemap provider unavailable');
     }
+    return;
+  }
+  if (path === '/api/project-catalog') {
+    const catalog = await readFile(new URL('../../db/data/project-catalog.json', import.meta.url), 'utf8')
+      .then(content => schema.parse(JSON.parse(content)))
+      .catch(() => dataset);
+    res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify(catalog));
     return;
   }
   const payload = path === '/api/dashboard' ? dashboard : path === '/api/projects' ? dataset.projects : path === '/api/opportunities' ? dashboard.opportunities : path === '/api/health' ? { status: 'ok' } : null;

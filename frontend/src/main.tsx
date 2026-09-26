@@ -4,4 +4,5 @@ import App from './App';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './styles.css';
 import './components/ProjectCreator.css';
+import './components/MapCombine.css';
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);

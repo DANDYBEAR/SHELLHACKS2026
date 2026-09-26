@@ -1,0 +1,183 @@
+.combine-map-control {
+  position: relative;
+}
+
+.map-tools .map-button {
+  position: relative;
+}
+
+.combine-project-button {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--map-panel);
+  color: var(--muted);
+  box-shadow: 0 2px 7px #0002;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.map-tools .combine-map-control > .combine-project-button {
+  position: absolute;
+}
+
+.map-tools .combine-map-control > .uncombine-project-button {
+  top: 80px;
+}
+
+.uncombine-project-button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+.combine-chain-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.combine-project-button:hover,
+.combine-project-button.active {
+  color: var(--blue);
+  border-color: var(--border);
+}
+
+.map-control-tooltip,
+.combine-project-tooltip {
+  position: absolute;
+  right: 42px;
+  top: 50%;
+  z-index: 8;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-50%) translateX(3px);
+  transition: opacity 120ms ease, transform 120ms ease;
+  pointer-events: none;
+}
+
+.map-tools .map-button:hover .map-control-tooltip,
+.map-tools .map-button:focus-visible .map-control-tooltip,
+.combine-project-button:hover .combine-project-tooltip,
+.combine-project-button:focus-visible .combine-project-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+.combine-status {
+  position: absolute;
+  z-index: 4;
+  top: 62px;
+  right: 57px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: fit-content;
+  max-width: min(250px, calc(100% - 75px));
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--map-panel);
+  color: var(--text);
+  box-shadow: 0 2px 8px #0002;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.combine-status button {
+  flex: 0 0 auto;
+  margin: -2px -3px 0 0;
+  padding: 0 3px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.combined-project-names {
+  overflow-wrap: anywhere;
+}
+
+.combined-opportunities {
+  flex: 0 1 auto;
+  max-height: 230px;
+  min-height: 0;
+  padding: 9px 8px 4px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.combined-opportunities-heading {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 8px 7px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.combined-opportunities-heading strong {
+  font-weight: 650;
+}
+
+.combined-opportunities-heading span {
+  margin-left: auto;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.combined-opportunity-card {
+  padding-top: 10px;
+}
+
+.combined-opportunity-card .card-top {
+  margin-bottom: 7px;
+}
+
+@media (max-width: 760px) {
+  .combined-opportunities {
+    max-height: 210px;
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+}
+
+@media (max-width: 760px) {
+  .combine-project-button {
+    top: 40px;
+  }
+
+  .combine-project-tooltip {
+    font-size: 10px;
+  }
+
+  .map-tools .combine-map-control > .uncombine-project-button {
+    top: 80px;
+  }
+
+  .combine-status {
+    top: 58px;
+    width: min(220px, calc(100% - 70px));
+    font-size: 10px;
+  }
+
+}

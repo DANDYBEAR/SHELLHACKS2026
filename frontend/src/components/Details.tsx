@@ -1,17 +1,38 @@
 import { useState } from 'react';
 import { ArrowDownToLine, ArrowUpRight, CalendarDays, CircleHelp, FileText, LocateFixed, MapPin, Printer, Route, X } from 'lucide-react';
 import { TIERS, UTILITY_NAMES, type Opportunity, type Project } from '../../../shared/types';
-import { center } from '../../../shared/analysis';
+import { center, distanceMiles, tierForDistance } from '../../../shared/analysis';
 import { formatDate } from './Timeline';
-export default function Details({ pair, projects, inspected, onClose, onZoom, onExport, onPrint }: {
-  pair: Opportunity | null; projects: Project[]; inspected: Project | null;
+import { combinedDaysApart } from './CombinedOpportunityList';
+export default function Details({ pair, projects, combinedProjects, inspected, onClose, onZoom, onExport, onPrint }: {
+  pair: Opportunity | null; projects: Project[]; combinedProjects: Project[]; inspected: Project | null;
   onClose(): void; onZoom(id: string): void; onExport(): void; onPrint(): void;
 }) {
   const [tab, setTab] = useState<'overview' | 'evidence'>('overview');
   const shown = pair ? projects.filter(p => p.id === pair.projectA || p.id === pair.projectB) : inspected ? [inspected] : [];
+  const combinedStart = combinedProjects.length > 1 ? center(combinedProjects[0]) : null;
+  const combinedDistances = combinedStart ? combinedProjects.slice(1).map(project => {
+    const projectCenter = center(project);
+    return projectCenter ? distanceMiles(combinedStart, projectCenter) : null;
+  }).filter((distance): distance is number => distance !== null) : [];
+  const combinedDistance = combinedDistances.length ? Math.max(...combinedDistances) : null;
+  const combinedTier = combinedDistance === null ? null : tierForDistance(combinedDistance);
+  const combinedDayCount = combinedProjects.length > 1 ? combinedDaysApart(combinedProjects.map(project => project.id)) : null;
   if (!shown.length) return <aside className="details-panel no-selection"><div className="panel-heading"><span className="eyebrow">OPPORTUNITY DETAILS</span><CircleHelp size={16}/></div><div className="selection-intro"><div className="selection-graphic"><MapPin size={24}/><span/><MapPin size={24}/></div><h2>A closer look at<br/>what’s nearby.</h2><p>Select an opportunity to explore its location, timing, and potential for coordination.</p></div><div className="tier-guide"><span className="eyebrow">THREE WAYS TO COORDINATE</span>{TIERS.map(t => <div className="tier-guide-row" key={t.id}><span className={`tier-number tier-${t.id}`}>{t.id}</span><div><strong>{t.name} proximity</strong><p>{t.scenario}</p></div><span>{t.range}</span></div>)}</div><div className="method-note"><FileText size={17}/><div><strong>Evidence comes first</strong><p>These are geographic candidates. Shared schedules, routes, and resources need further verification.</p></div></div></aside>;
   const tier = pair ? TIERS[pair.tier - 1] : null;
-  return <aside className="details-panel has-selection"><div className="panel-heading"><span className="eyebrow">{pair ? 'SELECTED OPPORTUNITY' : 'PROJECT DETAILS'}</span><button className="icon-button" aria-label="Close details" onClick={onClose}><X size={17}/></button></div><div className="detail-title">{tier && <span className={`tier-badge tier-${tier.id}`}>Tier {tier.id} · {tier.name}</span>}<h2>{pair ? tier!.scenario : inspected!.shortName}</h2><p>{pair ? 'Cross-utility coordination candidate' : 'No geographic match in the current results'}</p></div>
+  return <aside className="details-panel has-selection"><div className="panel-heading"><span className="eyebrow">{pair || combinedProjects.length > 1 ? 'SELECTED OPPORTUNITY' : 'PROJECT DETAILS'}</span><button className="icon-button" aria-label="Close details" onClick={onClose}><X size={17}/></button></div>
+    {combinedProjects.length > 1 && <>
+      <div className="detail-title">
+        {combinedTier && <span className={`tier-badge tier-${combinedTier}`}>Tier {combinedTier} · {TIERS[combinedTier - 1].name}</span>}
+        <h2>Combined Projects</h2>
+        <p className="combined-project-names">{combinedProjects.map(project => project.shortName).join(' · ')}</p>
+      </div>
+      <div className="detail-metrics combined-group-metrics">
+        <div><span><Route size={14}/> FARTHEST CENTER</span><strong>{combinedDistance?.toFixed(2) ?? '—'} <small>mi</small></strong></div>
+        <div><span><CalendarDays size={14}/> DAYS APART</span><strong>{combinedDayCount?.toLocaleString() ?? '—'} <small>days</small></strong></div>
+      </div>
+    </>}
+    {combinedProjects.length <= 1 && <div className="detail-title">{tier && <span className={`tier-badge tier-${tier.id}`}>Tier {tier.id} · {tier.name}</span>}<h2>{pair ? tier!.scenario : inspected!.shortName}</h2><p>{pair ? 'Cross-utility coordination candidate' : 'No geographic match in the current results'}</p></div>}
     {pair && <div className="detail-metrics"><div><span><Route size={14}/> CENTER DISTANCE</span><strong>{pair.distanceMi.toFixed(2)} <small>mi</small></strong></div><div><span><CalendarDays size={14}/> DATE GAP</span><strong>{pair.timeGapDays?.toLocaleString() ?? '—'} <small>days</small></strong></div></div>}
     <div className="detail-tabs" role="tablist" aria-label="Opportunity details">{(['overview', 'evidence'] as const).map(t => <button key={t} id={`tab-${t}`} role="tab" aria-controls={`detail-${t}`} aria-selected={tab === t} onClick={() => setTab(t)}>{t === 'overview' ? 'Overview' : 'Evidence'}{t === 'evidence' && <FileText size={14}/>}</button>)}</div>
     <div className="detail-content" role="tabpanel" id={`detail-${tab}`} aria-labelledby={`tab-${tab}`}>
