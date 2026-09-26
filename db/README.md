@@ -1,11 +1,10 @@
 # Data layer
 
-The prototype now has two local data representations:
+The prototype now has one local data representation for app data:
 
-- `data/projects.json` remains the frontend/API-compatible normalized sample used by the current backend.
-- `data/gridlock.sqlite` is a generated local SQLite database for the next phase of scoring, ranking and enrichment work. It is intentionally ignored by Git because it is reproducible from `data/projects.json` and `schema.sql`.
+- `data/gridlock.sqlite` is the generated local SQLite database read by the backend. It is intentionally ignored by Git because it is reproducible from the supplied workbook and `schema.sql`.
 
-The backend still reads `projects.json` for `/api/dashboard`, `/api/projects` and `/api/opportunities`. The SQLite database is the new foundation for sequentially moving toward a full data-backed platform without changing the UI all at once.
+The backend reads SQLite for `/api/dashboard`, `/api/projects` and `/api/opportunities`. The API response shape remains frontend-compatible.
 
 ## Build the local database
 
@@ -28,7 +27,7 @@ The refresh scripts create `db/data/gridlock.sqlite` with:
 
 Source: user-supplied `Projects_Overlaps.xlsx`, `projects!A1:Q11`. Validation reference: `overlaps!A1:I7`. The workbook importer preserves source row numbers, source date strings and missing endpoint coordinates, and converts Excel dates and date strings to ISO calendar dates. Coordinates are stored in GeoJSON longitude/latitude order.
 
-PDF and synthetic enrichment records are not part of the current database. `projects.json` and `gridlock.sqlite` are rebuilt from the workbook only.
+PDF and synthetic enrichment records are not part of the current database. `gridlock.sqlite` is rebuilt from the workbook only.
 
 ## Database model
 
@@ -39,6 +38,7 @@ PDF and synthetic enrichment records are not part of the current database. `proj
 - `source_documents`: internal file records for future document-backed imports
 - `projects`: project-level facts, dates, type, status, and confidence fields
 - `project_endpoints`: endpoint names and coordinates
+- `project_notes`: ordered project notes shown in evidence views
 - `project_centers`: computed view of center coordinates
 - `geo_contexts`: future location enrichment, including TIGER/Line identifiers
 - `scoring_profiles`: named scoring models
@@ -46,7 +46,7 @@ PDF and synthetic enrichment records are not part of the current database. `proj
 - `opportunity_scores`: ranked utility-to-utility project pairs
 - `dashboard_projects`: UI-safe project view
 
-The UI should continue to show project facts and rankings from the workbook-derived JSON.
+The UI should continue to show project facts and rankings from SQLite-backed API responses.
 
 ## TIGER/Line data
 
@@ -68,9 +68,9 @@ Less useful for this challenge:
 
 A good next step is to add a TIGER enrichment script that takes project centers from SQLite, looks up county/place/road context, and writes results into `geo_contexts`. That can improve scoring without adding more UI clutter.
 
-## Regenerate JSON from the workbook
+## Regenerate SQLite from the workbook
 
-To regenerate `projects.json` and rebuild SQLite from the supplied workbook, run from the project root:
+To regenerate SQLite from the supplied workbook, run from the project root:
 
 ```powershell
 npm run data:refresh

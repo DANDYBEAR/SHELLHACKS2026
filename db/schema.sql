@@ -70,6 +70,14 @@ CREATE TABLE IF NOT EXISTS project_endpoints (
   UNIQUE (project_id, endpoint_order)
 );
 
+CREATE TABLE IF NOT EXISTS project_notes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  note_order INTEGER NOT NULL,
+  note TEXT NOT NULL,
+  UNIQUE (project_id, note_order)
+);
+
 CREATE VIEW IF NOT EXISTS project_centers AS
 SELECT
   p.id AS project_id,

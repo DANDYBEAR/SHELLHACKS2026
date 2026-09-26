@@ -1,22 +1,91 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import { resolve, extname, sep } from 'node:path';
-import { z } from 'zod';
-import { calculateOpportunities, candidateCount } from '../../shared/analysis';
-const coordinate = z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]).nullable();
-const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s => Number.isFinite(Date.parse(s)) && new Date(s).toISOString().slice(0, 10) === s);
+import { rankOpportunities } from '../../shared/analysis';
+import type { Coordinate, DashboardData, Dataset, Endpoint, Opportunity, Project } from '../../shared/types';
 const usStateBoundaries = JSON.parse(await readFile(new URL('../../frontend/src/data/us-states.json', import.meta.url), 'utf8'));
-const endpoint = z.object({ name: z.string(), coordinates: coordinate });
-const project = z.object({
-  id: z.string(), utility: z.enum(['DESC', 'GPC']), state: z.string(), name: z.string(), shortName: z.string(),
-  endpoints: z.tuple([endpoint, endpoint]), inServiceDate: date.nullable(), rawDate: z.string(), sourceRow: z.number(),
-  sourceProjectId: z.string().nullable(), document: z.string().nullable(), documentPage: z.number().nullable(), notes: z.array(z.string()),
-});
-const schema = z.object({ name: z.string(), source: z.string(), referenceDate: date, projects: z.array(project) });
-const dataset = schema.parse(JSON.parse(await readFile(new URL('../../db/data/projects.json', import.meta.url), 'utf8')));
+const dbPath = fileURLToPath(new URL('../../db/data/gridlock.sqlite', import.meta.url));
+const db = new DatabaseSync(dbPath, { readOnly: true });
+type ProjectRow = {
+  id: string; utility: string; state: string; name: string; shortName: string;
+  sourceRow: number; sourceProjectId: string | null; inServiceDate: string | null;
+  rawDate: string; document: string | null; documentPage: number | null;
+};
+type EndpointRow = { projectId: string; endpointOrder: number; name: string; longitude: number | null; latitude: number | null };
+type NoteRow = { projectId: string; note: string };
+function coordinate(longitude: number | null, latitude: number | null): Coordinate | null {
+  return longitude === null || latitude === null ? null : [longitude, latitude];
+}
+function latestDataset() {
+  const row = db.prepare('SELECT name, source, reference_date AS referenceDate FROM dataset_versions ORDER BY id DESC LIMIT 1').get() as Pick<Dataset, 'name' | 'source' | 'referenceDate'> | undefined;
+  if (!row) throw new Error('SQLite dataset is empty. Run npm run data:refresh.');
+  return row;
+}
+function loadProjects(): Project[] {
+  const rows = db.prepare(`
+    SELECT p.id, p.utility_code AS utility, p.state, p.name, p.short_name AS shortName,
+      p.source_row AS sourceRow, p.source_project_id AS sourceProjectId,
+      p.in_service_date AS inServiceDate, COALESCE(p.raw_date, '') AS rawDate,
+      sd.file_name AS document, p.document_page AS documentPage
+    FROM projects p
+    LEFT JOIN source_documents sd ON sd.id = p.document_id
+    ORDER BY p.source_row, p.id
+  `).all() as ProjectRow[];
+  const endpointRows = db.prepare(`
+    SELECT project_id AS projectId, endpoint_order AS endpointOrder, name, longitude, latitude
+    FROM project_endpoints
+    ORDER BY project_id, endpoint_order
+  `).all() as EndpointRow[];
+  const noteRows = db.prepare('SELECT project_id AS projectId, note FROM project_notes ORDER BY project_id, note_order').all() as NoteRow[];
+  const endpoints = new Map<string, Endpoint[]>();
+  for (const endpoint of endpointRows) {
+    const list = endpoints.get(endpoint.projectId) ?? [];
+    list[endpoint.endpointOrder - 1] = { name: endpoint.name, coordinates: coordinate(endpoint.longitude, endpoint.latitude) };
+    endpoints.set(endpoint.projectId, list);
+  }
+  const notes = new Map<string, string[]>();
+  for (const note of noteRows) notes.set(note.projectId, [...(notes.get(note.projectId) ?? []), note.note]);
+  return rows.map(row => {
+    const projectEndpoints = endpoints.get(row.id);
+    if (!projectEndpoints || projectEndpoints.length !== 2) throw new Error(`Project ${row.id} does not have two endpoints`);
+    return {
+      id: row.id,
+      utility: row.utility,
+      state: row.state,
+      name: row.name,
+      shortName: row.shortName,
+      endpoints: projectEndpoints as [Endpoint, Endpoint],
+      inServiceDate: row.inServiceDate,
+      rawDate: row.rawDate,
+      sourceRow: row.sourceRow,
+      sourceProjectId: row.sourceProjectId,
+      document: row.document,
+      documentPage: row.documentPage,
+      notes: notes.get(row.id) ?? [],
+    } as Project;
+  });
+}
+function loadOpportunities(): Opportunity[] {
+  const rows = db.prepare(`
+    SELECT id, project_a AS projectA, project_b AS projectB, center_distance_mi AS distanceMi,
+      date_gap_days AS timeGapDays, distance_tier AS tier
+    FROM opportunity_scores
+  `).all() as Opportunity[];
+  return rankOpportunities(rows);
+}
+function loadCandidateCount(): number {
+  const row = db.prepare(`
+    SELECT COUNT(*) AS count
+    FROM projects a
+    JOIN projects b ON a.id < b.id AND a.utility_code <> b.utility_code
+  `).get() as { count: number };
+  return row.count;
+}
+const dataset: Dataset = { ...latestDataset(), projects: loadProjects() };
 if (new Set(dataset.projects.map(p => p.id)).size !== dataset.projects.length) throw new Error('Duplicate project IDs');
-const dashboard = { ...dataset, opportunities: calculateOpportunities(dataset.projects), candidateCount: candidateCount(dataset.projects) };
+const dashboard: DashboardData = { ...dataset, opportunities: loadOpportunities(), candidateCount: loadCandidateCount() };
 const publicDir = fileURLToPath(new URL('../../frontend/dist/', import.meta.url));
 const mime: Record<string, string> = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.json': 'application/json', '.woff2': 'font/woff2' };
 const basemapPrefix = '/api/basemap/';

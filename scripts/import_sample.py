@@ -1,4 +1,4 @@
-"""Read the supplied workbook without modifying it. Rebuild db/data/projects.json."""
+"""Read the supplied workbook without modifying it. Stage normalized project data."""
 from __future__ import annotations
 
 import datetime as dt
@@ -143,7 +143,7 @@ def main() -> int:
             "notes": notes,
         })
 
-    output = ROOT / "db" / "data" / "projects.json"
+    output = ROOT / "work" / "projects_import.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps({
         "name": "Provided planning snapshot",

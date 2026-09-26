@@ -1,8 +1,56 @@
 import { describe, expect, it } from 'vitest';
-import data from '../db/data/projects.json';
+import { DatabaseSync } from 'node:sqlite';
 import { calculateOpportunities, candidateCount, center, dayGap, distanceMiles, rankOpportunities, tierForDistance } from '../shared/analysis';
 import type { Dataset, Opportunity, Project } from '../shared/types';
-const projects = (data as unknown as Dataset).projects;
+type ProjectRow = {
+  id: string; utility: string; state: string; name: string; shortName: string;
+  sourceRow: number; sourceProjectId: string | null; inServiceDate: string | null;
+  rawDate: string; document: string | null; documentPage: number | null;
+};
+type EndpointRow = { projectId: string; endpointOrder: number; name: string; longitude: number | null; latitude: number | null };
+function loadProjectsFromDb(): Dataset['projects'] {
+  const db = new DatabaseSync('db/data/gridlock.sqlite', { readOnly: true });
+  const rows = db.prepare(`
+    SELECT p.id, p.utility_code AS utility, p.state, p.name, p.short_name AS shortName,
+      p.source_row AS sourceRow, p.source_project_id AS sourceProjectId,
+      p.in_service_date AS inServiceDate, COALESCE(p.raw_date, '') AS rawDate,
+      sd.file_name AS document, p.document_page AS documentPage
+    FROM projects p
+    LEFT JOIN source_documents sd ON sd.id = p.document_id
+    ORDER BY p.source_row, p.id
+  `).all() as ProjectRow[];
+  const endpointRows = db.prepare(`
+    SELECT project_id AS projectId, endpoint_order AS endpointOrder, name, longitude, latitude
+    FROM project_endpoints
+    ORDER BY project_id, endpoint_order
+  `).all() as EndpointRow[];
+  const endpoints = new Map<string, Project['endpoints']>();
+  for (const endpoint of endpointRows) {
+    const list = endpoints.get(endpoint.projectId) ?? [null, null] as unknown as Project['endpoints'];
+    list[endpoint.endpointOrder - 1] = {
+      name: endpoint.name,
+      coordinates: endpoint.longitude === null || endpoint.latitude === null ? null : [endpoint.longitude, endpoint.latitude],
+    };
+    endpoints.set(endpoint.projectId, list);
+  }
+  db.close();
+  return rows.map(row => ({
+    id: row.id,
+    utility: row.utility,
+    state: row.state,
+    name: row.name,
+    shortName: row.shortName,
+    endpoints: endpoints.get(row.id)!,
+    inServiceDate: row.inServiceDate,
+    rawDate: row.rawDate,
+    sourceRow: row.sourceRow,
+    sourceProjectId: row.sourceProjectId,
+    document: row.document,
+    documentPage: row.documentPage,
+    notes: [],
+  } as Project));
+}
+const projects = loadProjectsFromDb();
 const workbookProjects = projects.filter(p => p.sourceRow <= 11);
 describe('supplied workbook reconciliation', () => {
   it('reproduces all six distances, date gaps and 25 comparisons', () => {

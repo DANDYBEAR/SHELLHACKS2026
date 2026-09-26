@@ -27,7 +27,7 @@ With the development server running, `npm run test:browser` checks regional and 
 ```text
 frontend/       React UI, themes, map, timeline and exports
 backend/        Read-only Node HTTP API and startup validation
-db/data/        Canonical normalized sample, no database server required
+db/data/        Local SQLite database, no database server required
 shared/         Types, distance calculations, tiers and ranking
 scripts/        Reproducible workbook import
 tests/          Geographic, date, ranking and sample reconciliation tests

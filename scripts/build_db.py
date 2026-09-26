@@ -1,7 +1,7 @@
-"""Build the local SQLite database from db/data/projects.json.
+"""Build the local SQLite database from staged workbook import data.
 
 This script creates db/data/gridlock.sqlite for local development. The generated
-SQLite file is intentionally reproducible from JSON and schema.sql.
+SQLite file is intentionally reproducible from the supplied workbook and schema.sql.
 """
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / "db" / "schema.sql"
-SOURCE = ROOT / "db" / "data" / "projects.json"
+SOURCE = ROOT / "work" / "projects_import.json"
 OUTPUT = ROOT / "db" / "data" / "gridlock.sqlite"
 EARTH_RADIUS_MI = 3958.7613
 UTILITY_NAMES = {
@@ -89,7 +89,7 @@ def main() -> None:
 
     con.execute(
         "INSERT INTO dataset_versions(name, source, reference_date, notes) VALUES (?, ?, ?, ?)",
-        (data["name"], data["source"], data["referenceDate"], "Seeded from normalized prototype JSON."),
+        (data["name"], data["source"], data["referenceDate"], "Seeded from the normalized workbook import."),
     )
     dataset_id = con.execute("SELECT last_insert_rowid()").fetchone()[0]
 
@@ -144,6 +144,10 @@ def main() -> None:
                     0.35 if endpoint.get("coordinateSource") == "synthetic-test" else 0.75 if coords else 0.0,
                 ),
             )
+        con.executemany(
+            "INSERT INTO project_notes(project_id, note_order, note) VALUES (?, ?, ?)",
+            [(project["id"], index, note) for index, note in enumerate(project.get("notes", []), start=1)],
+        )
 
     con.execute(
         """
