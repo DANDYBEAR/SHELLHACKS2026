@@ -16,7 +16,8 @@
     "db:build": "python scripts/build_db.py",
     "data:import-example": "python scripts/import_sample.py \"C:\\Users\\jeffr\\Downloads\\OneDrive_2026-09-26\\ShellHacks 2026 - Gridlock\\Projects_Overlaps.xlsx\"",
     "data:import-pdfs": "python scripts/import_project_listings.py",
-    "data:refresh": "npm run data:import-example && npm run data:import-pdfs && npm run db:build"
+    "data:enrich-synthetic": "python scripts/enrich_synthetic_test_data.py",
+    "data:refresh": "npm run data:import-example && npm run data:import-pdfs && npm run data:enrich-synthetic && npm run db:build"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

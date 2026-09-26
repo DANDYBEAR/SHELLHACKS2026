@@ -17,7 +17,7 @@ python scripts/build_db.py
 
 The refresh scripts create `db/data/gridlock.sqlite` with:
 
-- 252 normalized projects after merging workbook rows and ProjectListings PDF records
+- 40 normalized projects after merging workbook rows, sampling ProjectListings PDF records, and adding synthetic edge-case records
 - project endpoints and computed project centers
 - utilities
 - source document records
@@ -29,11 +29,13 @@ The refresh scripts create `db/data/gridlock.sqlite` with:
 
 Source: user-supplied `Projects_Overlaps.xlsx`, `projects!A1:Q11`, plus PDFs under `ProjectListings/`. Validation reference: `overlaps!A1:I7`. The workbook importer preserves source row numbers, source date strings and missing endpoint coordinates, and converts Excel dates and date strings to ISO calendar dates. Coordinates are stored in GeoJSON longitude/latitude order.
 
-The PDF import extracts 44 Dominion pages and 208 Georgia ITS project detail pages. Existing workbook rows are enriched when source IDs or project names match, and PDF-only projects are appended. Endpoint coordinates are reused only from known workbook endpoint names; otherwise the project stays searchable but does not produce a map marker.
+The PDF import extracts 44 Dominion pages and 208 Georgia ITS project detail pages. Existing workbook rows are enriched when source IDs or project names match, and PDF-only projects are appended before the synthetic test enrichment step curates the map fixture.
+
+Synthetic enrichment trims the fixture to 20 Dominion and 20 Georgia Power projects, assigns deterministic generated locations where needed, and adds explicit edge-case records for immediate/local/regional/excluded distances, missing dates, one-endpoint projects and no-location projects. Dominion test locations are kept out of Georgia; Georgia Power test locations are kept out of South Carolina. Generated values are marked in project notes and SQLite endpoint `coordinate_source`; they are for UI and scoring coverage only.
 
 Supporting Dominion references in the supplied `2024-2028-2million-and-above-project-descriptions.pdf`: DESC_1 page 14 (6809 E), DESC_2 page 31 (6810 A), DESC_3 page 23 (06367 D - G), DESC_4 page 1 (6807 B), DESC_5 page 10 (6808 S). The similarly named page-15 project 6809 G is distinct.
 
-Georgia records use only the organizer-provided workbook data. The local PDF is registered in SQLite as a source document for test workflows, but its text is not parsed into project facts.
+Georgia records include the organizer-provided workbook data plus a curated sample of extracted PDF detail records. The local PDF is also registered in SQLite as a source document for test workflows.
 
 ## Database model
 

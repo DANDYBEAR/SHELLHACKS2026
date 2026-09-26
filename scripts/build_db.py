@@ -16,7 +16,24 @@ SCHEMA = ROOT / "db" / "schema.sql"
 SOURCE = ROOT / "db" / "data" / "projects.json"
 OUTPUT = ROOT / "db" / "data" / "gridlock.sqlite"
 EARTH_RADIUS_MI = 3958.7613
-UTILITY_NAMES = {"DESC": "Dominion Energy SC", "GPC": "Georgia Power"}
+UTILITY_NAMES = {
+    "DESC": "Dominion Energy SC",
+    "GPC": "Georgia Power",
+    "SCE": "SC Electric",
+    "NCE": "NC Electric",
+    "GAE": "GA Electric",
+    "ALE": "AL Electric",
+    "FLE": "FL Electric",
+}
+UTILITY_STATE_SCOPE = {
+    "DESC": "SC",
+    "GPC": "GA",
+    "SCE": "SC",
+    "NCE": "NC",
+    "GAE": "GA",
+    "ALE": "AL",
+    "FLE": "FL",
+}
 DOCUMENT_ROOT = ROOT / "ProjectListings"
 
 
@@ -76,10 +93,11 @@ def main() -> None:
     )
     dataset_id = con.execute("SELECT last_insert_rowid()").fetchone()[0]
 
-    for code, name in UTILITY_NAMES.items():
+    utility_codes = sorted({project["utility"] for project in data["projects"]})
+    for code in utility_codes:
         con.execute(
             "INSERT INTO utilities(code, display_name, state_scope) VALUES (?, ?, ?)",
-            (code, name, "SC/GA" if code == "GPC" else "SC"),
+            (code, UTILITY_NAMES.get(code, code), UTILITY_STATE_SCOPE.get(code)),
         )
 
     documents: dict[tuple[str | None, str | None], int | None] = {}
@@ -117,10 +135,14 @@ def main() -> None:
             coords = endpoint["coordinates"]
             con.execute(
                 """
-                INSERT INTO project_endpoints(project_id, endpoint_order, name, longitude, latitude, coordinate_confidence)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO project_endpoints(project_id, endpoint_order, name, longitude, latitude, coordinate_source, coordinate_confidence)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
-                (project["id"], index, endpoint["name"], coords[0] if coords else None, coords[1] if coords else None, 0.75 if coords else 0.0),
+                (
+                    project["id"], index, endpoint["name"], coords[0] if coords else None, coords[1] if coords else None,
+                    endpoint.get("coordinateSource", "workbook" if coords else "unresolved"),
+                    0.35 if endpoint.get("coordinateSource") == "synthetic-test" else 0.75 if coords else 0.0,
+                ),
             )
 
     con.execute(

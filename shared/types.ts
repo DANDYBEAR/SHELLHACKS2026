@@ -1,5 +1,5 @@
 export type Coordinate = [number, number]; // Longitude, latitude
-export type Utility = 'DESC' | 'GPC';
+export type Utility = 'DESC' | 'GPC' | 'SCE' | 'NCE' | 'GAE' | 'ALE' | 'FLE';
 export type Endpoint = { name: string; coordinates: Coordinate | null };
 export type Project = {
   id: string; utility: Utility; state: string; name: string; shortName: string;
@@ -18,8 +18,29 @@ export type Dataset = {
 };
 export type DashboardData = Dataset & { opportunities: Opportunity[]; candidateCount: number };
 export const UTILITY_NAMES: Record<Utility, string> = {
-  DESC: 'Dominion Energy SC', GPC: 'Georgia Power',
+  DESC: 'Dominion Energy SC',
+  GPC: 'Georgia Power',
+  SCE: 'SC Electric',
+  NCE: 'NC Electric',
+  GAE: 'GA Electric',
+  ALE: 'AL Electric',
+  FLE: 'FL Electric',
 };
+export const UTILITY_COLORS: Record<Utility, string> = {
+  DESC: '#5486ff',
+  GPC: '#ee9649',
+  SCE: '#1f9d7a',
+  NCE: '#7c5cff',
+  GAE: '#d84f68',
+  ALE: '#a36b1f',
+  FLE: '#00a2b8',
+};
+export function utilityName(utility: string) {
+  return UTILITY_NAMES[utility as Utility] ?? utility;
+}
+export function utilityColor(utility: string) {
+  return UTILITY_COLORS[utility as Utility] ?? '#64748b';
+}
 export const TIERS = [
   { id: 1 as const, name: 'Immediate', range: '< 1 mi', scenario: 'Site access & staging', description: 'Investigate shared site access, staging areas, or nearby land needs.' },
   { id: 2 as const, name: 'Local', range: '1–<5 mi', scenario: 'Local logistics', description: 'Investigate shared equipment staging, deliveries, and construction logistics.' },

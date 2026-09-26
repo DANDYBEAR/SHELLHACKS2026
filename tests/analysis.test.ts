@@ -4,24 +4,13 @@ import { calculateOpportunities, candidateCount, center, dayGap, distanceMiles, 
 import type { Dataset, Opportunity, Project } from '../shared/types';
 const projects = (data as unknown as Dataset).projects;
 const workbookProjects = projects.filter(p => p.sourceRow <= 11);
-describe('supplied workbook reconciliation', () => {
-  it('reproduces all six distances, date gaps and 25 comparisons', () => {
+describe('curated test-data reconciliation', () => {
+  it('keeps the ten workbook seed projects but separates their synthetic map regions', () => {
     const pairs = calculateOpportunities(workbookProjects);
     expect(candidateCount(workbookProjects)).toBe(25);
-    expect(pairs).toHaveLength(6);
-    const expected = [
-      ['DESC_2__GPC_1', 4.09, 3074], ['DESC_3__GPC_2', 5.65, 152],
-      ['DESC_3__GPC_3', 7.55, 517], ['DESC_1__GPC_1', 8.01, 3074],
-      ['DESC_5__GPC_2', 14.34, 365], ['DESC_5__GPC_3', 14.81, 730],
-    ] as const;
-    for (const [id, distance, gap] of expected) {
-      const p = pairs.find(p => p.id === id)!;
-      expect(p.distanceMi).toBeCloseTo(distance, 2); expect(p.timeGapDays).toBe(gap);
-    }
-    expect(pairs.map(p => p.id)).toEqual(['DESC_2__GPC_1', 'DESC_3__GPC_2', 'DESC_5__GPC_2', 'DESC_3__GPC_3', 'DESC_5__GPC_3', 'DESC_1__GPC_1']);
-    expect(pairs.filter(p => p.tier === 1)).toHaveLength(0);
-    expect(pairs.filter(p => p.tier === 2)).toHaveLength(1);
-    expect(pairs.filter(p => p.tier === 3)).toHaveLength(5);
+    expect(pairs).toHaveLength(0);
+    expect(workbookProjects.filter(p => p.utility === 'DESC').every(p => p.state !== 'GA')).toBe(true);
+    expect(workbookProjects.filter(p => p.utility === 'GPC').every(p => p.state !== 'SC')).toBe(true);
   });
   it('excludes same-utility and unlocated pairs', () => {
     expect(calculateOpportunities(workbookProjects.filter(p => p.utility === 'DESC'))).toHaveLength(0);
@@ -29,28 +18,42 @@ describe('supplied workbook reconciliation', () => {
   });
 });
 describe('ProjectListings PDF import', () => {
-  it('appends PDF records while preserving the ten workbook seed projects', () => {
+  it('curates the PDF imports down to a smaller map-friendly sample', () => {
     expect(workbookProjects).toHaveLength(10);
-    expect(projects).toHaveLength(252);
-    expect(projects.filter(p => p.document === '2024-2028-2million-and-above-project-descriptions.pdf')).toHaveLength(44);
-    expect(projects.filter(p => p.document === '2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf')).toHaveLength(208);
+    expect(projects).toHaveLength(40);
+    expect(projects.filter(p => p.utility === 'DESC')).toHaveLength(20);
+    expect(projects.filter(p => p.utility === 'GPC')).toHaveLength(20);
+    expect(projects.filter(p => p.document === '2024-2028-2million-and-above-project-descriptions.pdf')).toHaveLength(15);
+    expect(projects.filter(p => p.document === '2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf')).toHaveLength(15);
     expect(projects.find(p => p.sourceProjectId === '6809 E')?.documentPage).toBe(14);
     expect(projects.find(p => p.sourceProjectId === '0167C-D')?.id).toBe('DESC_PDF_0167C_D');
     expect(projects.find(p => p.sourceProjectId === '20785')?.id).toBe('GPC_PDF_20785');
   });
-  it('leaves unresolved PDF-only projects off the map and reuses only known endpoint coordinates', () => {
-    const unresolved = projects.find(p => p.id === 'DESC_PDF_0167C_D')!;
+  it('keeps utilities out of each other primary states and leaves unresolved projects off the map', () => {
+    const unresolved = projects.find(p => p.id === 'GPC_SYN_UNLOCATED')!;
     expect(center(unresolved)).toBeNull();
     const resolved = projects.find(p => p.id === 'GPC_PDF_21116')!;
-    expect(center(resolved)).toEqual([-81.209472, 32.248701]);
-    expect(calculateOpportunities(projects)).toHaveLength(21);
+    expect(center(resolved)).not.toBeNull();
+    expect(projects.filter(p => p.utility === 'DESC').every(p => p.state !== 'GA')).toBe(true);
+    expect(projects.filter(p => p.utility === 'GPC').every(p => p.state !== 'SC')).toBe(true);
+    expect(calculateOpportunities(projects)).toHaveLength(11);
+  });
+  it('includes deterministic synthetic edge cases for map and scoring states', () => {
+    expect(projects.filter(p => p.id.includes('_SYN_'))).toHaveLength(10);
+    expect(projects.find(p => p.id === 'DESC_SYN_NO_DATE')?.inServiceDate).toBeNull();
+    const pairs = calculateOpportunities(projects);
+    expect(pairs.some(p => p.tier === 1)).toBe(true);
+    expect(pairs.some(p => p.tier === 2)).toBe(true);
+    expect(pairs.some(p => p.tier === 3)).toBe(true);
+    expect(pairs.some(p => p.id === 'DESC_SYN_EXCLUDED__GPC_SYN_EXCLUDED')).toBe(false);
   });
 });
 describe('geographic and timing boundaries', () => {
   it.each([[0, 1], [.99999, 1], [1, 2], [4.99999, 2], [5, 3], [24.99999, 3], [25, null], [25.01, null], [-1, null], [NaN, null]])('classifies %s miles as tier %s', (distance, tier) => expect(tierForDistance(distance as number)).toBe(tier));
   it('uses complete endpoint coordinates, preserving legitimate zeroes', () => {
-    expect(center(workbookProjects[0])).toEqual([-82.051362, 33.562599]);
-    expect(center(workbookProjects[2])![0]).toBeCloseTo(-81.0785475, 7);
+    expect(center(workbookProjects[0])![0]).toBeCloseTo(-80.3366405, 7);
+    expect(center(workbookProjects[0])![1]).toBeCloseTo(33.18667, 7);
+    expect(center(workbookProjects[2])![0]).toBeCloseTo(-81.051335, 7);
     const p: Project = { ...workbookProjects[0], endpoints: [{ name: 'a', coordinates: [0, 0] }, { name: 'b', coordinates: null }] };
     expect(center(p)).toEqual([0, 0]);
   });
