@@ -11,11 +11,38 @@ import type { Coordinate, Opportunity, Project, Utility } from '../../../shared/
 export type DraftMapProject = { id: string; title: string; coordinates: Coordinate };
 export type MapHandle = { fitAll(): void; fitPair(): void; fitProjects(ids: string[]): void; focusProject(id: string): void; focusCoordinate(coordinates: Coordinate): void; setDraftProjects(projects: DraftMapProject[]): void };
 type Props = { projects: Project[]; pair: Opportunity | null; projectId: string | null; selectedProjectId: string | null; selectedUtility: Utility | null; theme: 'light' | 'dark'; onProject(id: string): void };
-const styles = { light: import.meta.env.VITE_MAP_LIGHT_STYLE || '/api/basemap/styles/positron', dark: import.meta.env.VITE_MAP_DARK_STYLE || '/api/basemap/styles/dark' };
+const styles = { light: '/api/basemap/styles/positron', dark: '/api/basemap/styles/dark' };
 const styleUrl = (theme: 'light' | 'dark') => `${styles[theme]}?v=${Date.now()}`;
 maplibregl.setWorkerUrl(workerUrl);
 const empty: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const usStatesData = usStates as FeatureCollection;
+function stateLabelPoint(ring: number[][]): { point: Coordinate; area: number } {
+  let twiceArea = 0, x = 0, y = 0;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const cross = ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1];
+    twiceArea += cross;
+    x += (ring[j][0] + ring[i][0]) * cross;
+    y += (ring[j][1] + ring[i][1]) * cross;
+  }
+  const area = Math.abs(twiceArea / 2);
+  return Math.abs(twiceArea) < 1e-10
+    ? { point: [ring[0][0], ring[0][1]], area }
+    : { point: [x / (3 * twiceArea), y / (3 * twiceArea)], area };
+}
+const stateLabels: FeatureCollection = {
+  type: 'FeatureCollection',
+  features: usStatesData.features.flatMap(feature => {
+    const geometry = feature.geometry;
+    if (!geometry) return [];
+    const polygons = geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.type === 'MultiPolygon' ? geometry.coordinates : [];
+    const largest = polygons.map(polygon => stateLabelPoint(polygon[0] as number[][])).sort((a, b) => b.area - a.area)[0];
+    return largest ? [{ type: 'Feature', properties: feature.properties, geometry: { type: 'Point', coordinates: largest.point } }] : [];
+  }),
+};
+const countryLabel: FeatureCollection = {
+  type: 'FeatureCollection',
+  features: [{ type: 'Feature', properties: { name: 'United States' }, geometry: { type: 'Point', coordinates: [-98.5795, 39.8283] } }],
+};
 const usView = { center: [-98.5795, 39.8283] as Coordinate, zoom: 3.15 };
 function radiusFeature(point: Coordinate): Feature {
   const [lon, lat] = point.map(n => n * Math.PI / 180), d = MAX_COMPARISON_DISTANCE_MI / EARTH_RADIUS_MI;
@@ -109,8 +136,12 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       const stateBorderColor = latest.current.theme === 'dark' ? '#cbd5e1' : '#26384d';
       const stateBorderCasing = latest.current.theme === 'dark' ? '#0b111e' : '#ffffff';
       m.addSource('us-states', { type: 'geojson', data: usStatesData });
-      m.addLayer({ id: 'us-state-border-casing', type: 'line', source: 'us-states', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': stateBorderCasing, 'line-opacity': latest.current.theme === 'dark' ? .72 : .82, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 2.4, 4, 2.9, 7, 3.5, 10, 4.2] } });
-      m.addLayer({ id: 'us-state-borders', type: 'line', source: 'us-states', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': stateBorderColor, 'line-opacity': latest.current.theme === 'dark' ? .9 : .88, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.2, 4, 1.55, 7, 2, 10, 2.6] } });
+      m.addSource('us-state-label-points', { type: 'geojson', data: stateLabels });
+      m.addSource('us-country-label-point', { type: 'geojson', data: countryLabel });
+      m.addLayer({ id: 'us-state-border-casing', type: 'line', source: 'us-states', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': stateBorderCasing, 'line-dasharray': [3, 2], 'line-opacity': latest.current.theme === 'dark' ? .72 : .82, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 2.4, 4, 2.9, 7, 3.5, 10, 4.2] } });
+      m.addLayer({ id: 'us-state-borders', type: 'line', source: 'us-states', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': stateBorderColor, 'line-dasharray': [3, 2], 'line-opacity': latest.current.theme === 'dark' ? .9 : .88, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.2, 4, 1.55, 7, 2, 10, 2.6] } });
+      m.addLayer({ id: 'us-state-labels', type: 'symbol', source: 'us-state-label-points', minzoom: 2, maxzoom: 8, layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'], 'text-size': ['interpolate', ['linear'], ['zoom'], 2, 10, 5, 13, 8, 16], 'text-allow-overlap': false, 'text-ignore-placement': false }, paint: { 'text-color': latest.current.theme === 'dark' ? '#e5edf8' : '#26384d', 'text-halo-color': latest.current.theme === 'dark' ? '#101827' : '#ffffff', 'text-halo-width': 1.5 } });
+      m.addLayer({ id: 'us-country-label', type: 'symbol', source: 'us-country-label-point', minzoom: 0, maxzoom: 4.5, layout: { 'text-field': ['get', 'name'], 'text-font': ['Noto Sans Regular'], 'text-size': ['interpolate', ['linear'], ['zoom'], 0, 11, 5, 17], 'text-max-width': 8, 'text-allow-overlap': true, 'text-ignore-placement': true }, paint: { 'text-color': latest.current.theme === 'dark' ? '#e5edf8' : '#26384d', 'text-halo-color': latest.current.theme === 'dark' ? '#101827' : '#ffffff', 'text-halo-width': 2 } });
       m.addSource('radius', { type: 'geojson', data: empty });
       m.addLayer({ id: 'search-radius', type: 'fill', source: 'radius', paint: { 'fill-color': '#5585ff', 'fill-opacity': .07 } });
       m.addLayer({ id: 'radius-edge', type: 'line', source: 'radius', paint: { 'line-color': '#7299fa', 'line-width': 1, 'line-dasharray': [4, 4] } });
