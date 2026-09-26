@@ -1,0 +1,12 @@
+.combine-map-control{display:flex;flex-direction:column;gap:6px}
+.combine-project-button{position:relative}
+.combine-project-button.active{color:var(--blue);border-color:var(--blue)}
+.combine-chain-icon{width:17px;height:17px}
+.combine-project-tooltip{position:absolute;right:42px;top:50%;transform:translateY(-50%);display:none;white-space:nowrap;padding:6px 8px;border-radius:5px;background:var(--panel);border:1px solid var(--border);box-shadow:var(--shadow);color:var(--text);font-size:11px;z-index:20}
+.combine-project-button:hover .combine-project-tooltip,.combine-project-button:focus-visible .combine-project-tooltip{display:block}
+.combine-status{position:absolute;top:68px;right:58px;z-index:5;display:flex;align-items:center;gap:12px;max-width:min(360px,calc(100% - 80px));padding:9px 12px;border:1px solid var(--border);border-radius:7px;background:var(--panel);box-shadow:var(--shadow);font-size:11px;color:var(--text)}
+.combine-status button{padding:0;background:transparent;color:var(--muted);font-size:17px;line-height:1}
+.combined-opportunity-card{border-color:color-mix(in srgb,#8657d8 32%,var(--border));background:color-mix(in srgb,#8657d8 4%,transparent)}
+.combined-opportunity-card .card-top{margin-bottom:11px}
+.combined-project-names{font-size:11px;color:var(--muted);line-height:1.7;margin-top:7px}
+.combined-group-metrics{margin-top:0}

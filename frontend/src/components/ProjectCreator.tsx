@@ -26,21 +26,20 @@ const emptyForm: ProjectForm = {
 	startingDate: '', dueDate: '', totalCost: '',
 };
 
-type Props = { projects: Project[]; map: { current: MapHandle | null }; onConfirmed(): void };
+type Props = { projects: Project[]; map: { current: MapHandle | null }; onConfirmed(project: Project): void };
 
 export default function ProjectCreator({ projects, map, onConfirmed }: Props) {
 	const [open, setOpen] = useState(false);
 	const [stage, setStage] = useState<'form' | 'preview'>('form');
 	const [form, setForm] = useState<ProjectForm>(emptyForm);
 	const [draft, setDraft] = useState<ProjectDraft | null>(null);
-	const [saved, setSaved] = useState<ProjectDraft[]>([]);
 	const [error, setError] = useState('');
 
 	useEffect(() => {
-		const markers = [...saved, ...(open && stage === 'preview' && draft ? [draft] : [])]
+		const markers = [...(open && stage === 'preview' && draft ? [draft] : [])]
 			.map(({ id, title, coordinates }) => ({ id, title, coordinates }));
 		map.current?.setDraftProjects(markers);
-	}, [draft, map, open, saved, stage]);
+	}, [draft, map, open, stage]);
 
 	useEffect(() => {
 		if (open && stage === 'preview' && draft) map.current?.focusCoordinate(draft.coordinates);
@@ -61,7 +60,7 @@ export default function ProjectCreator({ projects, map, onConfirmed }: Props) {
 		const latitude = Number(form.latitude);
 		const totalCost = Number(form.totalCost);
 
-		if ([...projects, ...saved].some(project => project.id.toLowerCase() === id.toLowerCase())) {
+		if (projects.some(project => project.id.toLowerCase() === id.toLowerCase())) {
 			setError('That project ID is already in use.');
 			return;
 		}
@@ -93,9 +92,27 @@ export default function ProjectCreator({ projects, map, onConfirmed }: Props) {
 
 	const confirm = () => {
 		if (!draft) return;
-		setSaved(current => [...current, draft]);
+		const [longitude, latitude] = draft.coordinates;
+		const project: Project = {
+			id: draft.id,
+			utility: 'GPC',
+			state: '',
+			name: draft.title,
+			shortName: draft.title,
+			endpoints: [
+				{ name: 'Project location', coordinates: [longitude, latitude] },
+				{ name: 'Project location', coordinates: [longitude, latitude] },
+			],
+			inServiceDate: draft.dueDate || null,
+			rawDate: draft.dueDate,
+			sourceRow: 0,
+			sourceProjectId: draft.id,
+			document: null,
+			documentPage: null,
+			notes: [draft.description, `Starting date: ${draft.startingDate}`, `Total cost: ${draft.totalCost}`],
+		};
 		cancel();
-		onConfirmed();
+		onConfirmed(project);
 	};
 
 	return <>

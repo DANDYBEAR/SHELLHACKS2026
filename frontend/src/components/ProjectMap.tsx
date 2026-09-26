@@ -5,15 +5,17 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import { Expand, Layers, LocateFixed, RotateCcw } from 'lucide-react';
 import type { FeatureCollection, Feature, Geometry } from 'geojson';
 import usStates from '../data/us-states.json';
-import { center, EARTH_RADIUS_MI, MAX_COMPARISON_DISTANCE_MI } from '../../../shared/analysis';
+import { center, distanceMiles, EARTH_RADIUS_MI, MAX_COMPARISON_DISTANCE_MI } from '../../../shared/analysis';
 import { UTILITY_COLORS, utilityColor, utilityName, type Coordinate, type Opportunity, type Project, type Utility } from '../../../shared/types';
 
 export type DraftMapProject = { id: string; title: string; coordinates: Coordinate };
 export type MapHandle = { fitAll(): void; fitPair(): void; fitProjects(ids: string[]): void; focusProject(id: string): void; focusCoordinate(coordinates: Coordinate): void; setDraftProjects(projects: DraftMapProject[]): void };
-type Props = { projects: Project[]; pair: Opportunity | null; projectId: string | null; selectedProjectId: string | null; selectedUtility: Utility | null; theme: 'light' | 'dark'; onProject(id: string): void };
+type ProjectCombination = { active: boolean; working: string[]; groups: string[][] };
+type Props = { projects: Project[]; createdProjectIds: string[]; pair: Opportunity | null; projectId: string | null; selectedProjectId: string | null; selectedCombinedProjectIds: string[] | null; selectedUtility: Utility | null; theme: 'light' | 'dark'; onProject(id: string): void; onCombinedProjects(ids: string[] | null): void; onGroupsChange(groups: string[][]): void };
 const styles = { light: '/api/basemap/styles/positron', dark: '/api/basemap/styles/dark' };
 const styleUrl = (theme: 'light' | 'dark') => `${styles[theme]}?v=${Date.now()}`;
 const utilityColorExpression = ['match', ['get', 'utility'], ...Object.entries(UTILITY_COLORS).flat(), '#64748b'] as unknown as ExpressionSpecification;
+const projectColorExpression = ['case', ['boolean', ['get', 'created'], false], '#d94f3d', utilityColorExpression] as unknown as ExpressionSpecification;
 maplibregl.setWorkerUrl(workerUrl);
 const empty: FeatureCollection = { type: 'FeatureCollection', features: [] };
 const usStatesData = usStates as FeatureCollection;
@@ -56,12 +58,35 @@ function radiusFeature(point: Coordinate): Feature {
   }
   return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [coordinates] } };
 }
+function expandConnection(groups: string[][], projectIds: string[]) {
+  const connected = new Set(projectIds);
+  let expanded = true;
+  while (expanded) {
+    expanded = false;
+    for (const group of groups) {
+      if (!group.some(id => connected.has(id))) continue;
+      for (const id of group) if (!connected.has(id)) { connected.add(id); expanded = true; }
+    }
+  }
+  return [...connected];
+}
+function mergeConnection(groups: string[][], projectIds: string[]) {
+  const connected = expandConnection(groups, projectIds);
+  const members = new Set(connected);
+  const separate = groups.filter(group => !group.some(id => members.has(id)));
+  return connected.length > 1 ? [...separate, connected] : separate;
+}
 export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   const host = useRef<HTMLDivElement>(null), map = useRef<MapInstance | null>(null);
   const draftProjects = useRef<DraftMapProject[]>([]);
+  const projectClickHandler = useRef<(id: string) => void>(() => {});
   const latest = useRef(props); latest.current = props;
   const [ready, setReady] = useState(false), [error, setError] = useState(false);
   const [layersOpen, setLayersOpen] = useState(false), [radius, setRadius] = useState(false), [guides, setGuides] = useState(true);
+  const [combination, setCombination] = useState<ProjectCombination>({ active: false, working: [], groups: [] });
+  const [combineMessage, setCombineMessage] = useState('');
+  const combinationRef = useRef(combination); combinationRef.current = combination;
+  const updateCombination = (next: ProjectCombination) => { combinationRef.current = next; setCombination(next); latest.current.onGroupsChange(next.groups); };
   const visibleUtilities = [...new Set(props.projects.map(p => p.utility))].sort((a, b) => utilityName(a).localeCompare(utilityName(b)));
   const locatedProjects = props.projects.filter(p => center(p)).length;
   const settings = useRef({ radius, guides }); settings.current = { radius, guides };
@@ -82,10 +107,65 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     focusCoordinate: coordinates => map.current?.flyTo({ center: coordinates, zoom: 8.7, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1000 }),
     setDraftProjects: projects => { draftProjects.current = projects; update(); },
   }));
+  const selectMapProject = (id: string) => {
+    const current = combinationRef.current;
+    if (!current.active) latest.current.onProject(id);
+    if (current.active) {
+      if (current.working.includes(id)) return;
+      if (!current.working.length) {
+        const working = expandConnection(current.groups, [id]);
+        updateCombination({ ...current, working });
+        latest.current.onCombinedProjects(working.length > 1 ? working : null);
+        setCombineMessage(working.length > 1 ? `${working.length} projects already linked. Add another or finish.` : 'Starting project selected. Choose another project within 25 miles.');
+        return;
+      }
+      const startProject = latest.current.projects.find(project => project.id === current.working[0]);
+      const nextProject = latest.current.projects.find(project => project.id === id);
+      const startCenter = startProject && center(startProject), nextCenter = nextProject && center(nextProject);
+      if (!startCenter || !nextCenter || distanceMiles(startCenter, nextCenter) > MAX_COMPARISON_DISTANCE_MI) {
+        setCombineMessage('That project is outside the 25-mile starting radius.');
+        return;
+      }
+      const working = expandConnection(current.groups, [...current.working, id]);
+      updateCombination({ ...current, working });
+      latest.current.onCombinedProjects(working);
+      setCombineMessage(`${working.length} projects linked. Add another within 25 miles or finish.`);
+      return;
+    }
+    latest.current.onCombinedProjects(current.groups.find(group => group.includes(id)) ?? null);
+  };
+  projectClickHandler.current = selectMapProject;
+  const toggleCombination = () => {
+    const current = combinationRef.current;
+    if (!current.active) {
+      updateCombination({ ...current, active: true, working: [] });
+      setCombineMessage('Choose a starting project on the map.');
+      return;
+    }
+    const groups = current.working.length > 1 ? mergeConnection(current.groups, current.working) : current.groups;
+    updateCombination({ ...current, active: false, working: [], groups });
+    setCombineMessage(current.working.length > 1 ? 'Project connection saved.' : 'Project linking cancelled.');
+  };
+  const selectedProjectIds = props.selectedCombinedProjectIds?.length ? props.selectedCombinedProjectIds : props.pair ? [props.pair.projectA, props.pair.projectB] : [props.projectId ?? props.selectedProjectId ?? ''];
+  const uncombineTargetId = selectedProjectIds.find(id => combination.groups.some(group => group.includes(id)) || combination.working.includes(id)) ?? null;
+  const uncombineSelectedProject = () => {
+    if (!uncombineTargetId) return;
+    const current = combinationRef.current;
+    const sourceGroup = current.working.includes(uncombineTargetId) ? current.working : current.groups.find(group => group.includes(uncombineTargetId)) ?? [];
+    const remainingMembers = sourceGroup.filter(id => id !== uncombineTargetId);
+    const groups = current.groups.map(group => group.filter(id => id !== uncombineTargetId)).filter(group => group.length > 1);
+    const working = current.working.filter(id => id !== uncombineTargetId);
+    updateCombination({ ...current, groups, working });
+    latest.current.onCombinedProjects(remainingMembers.length > 1 ? remainingMembers : null);
+    setCombineMessage('Project removed from its connection.');
+  };
   const update = () => {
     const m = map.current; if (!m || !m.getSource('gridlock')) return;
     const { projects, pair, projectId, selectedUtility } = latest.current;
-    const selected = pair ? [pair.projectA, pair.projectB] : projectId ? [projectId] : [];
+    const selected = latest.current.selectedCombinedProjectIds?.length
+      ? latest.current.selectedCombinedProjectIds
+      : pair ? [pair.projectA, pair.projectB] : projectId ? [projectId] : [];
+    const groups = combinationRef.current.active ? mergeConnection(combinationRef.current.groups, combinationRef.current.working) : combinationRef.current.groups;
     const features: Feature<Geometry>[] = [];
     const selectedProjects = projects.filter(p => selected.includes(p.id));
     for (const p of selectedProjects) {
@@ -103,12 +183,18 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
           kind: 'project',
           id: p.id,
           utility: p.utility,
+          created: latest.current.createdProjectIds.includes(p.id),
           selected: selected.includes(p.id),
           utilityMatch: selectedUtility === p.utility,
           dimmed: selected.length > 0 ? !selected.includes(p.id) : selectedUtility !== null && selectedUtility !== p.utility,
         },
         geometry: { type: 'Point', coordinates: c },
       });
+    }
+    for (const group of groups) {
+      if (!group.some(id => selected.includes(id))) continue;
+      const coordinates = group.map(id => projects.find(project => project.id === id)).filter((project): project is Project => project !== undefined).map(center).filter((coordinate): coordinate is Coordinate => coordinate !== null);
+      if (coordinates.length > 1) features.push({ type: 'Feature', properties: { kind: 'combined-link' }, geometry: { type: 'LineString', coordinates } });
     }
     for (const draft of draftProjects.current) {
       features.push({ type: 'Feature', properties: { kind: 'draft', id: draft.id, title: draft.title }, geometry: { type: 'Point', coordinates: draft.coordinates } });
@@ -123,9 +209,10 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       });
     }
     (m.getSource('gridlock') as GeoJSONSource).setData({ type: 'FeatureCollection', features });
-    const radiusProject = projects.find(p => p.id === (latest.current.selectedProjectId ?? projectId ?? (pair ? pair.projectA : null)));
+    const combineStartId = combinationRef.current.active ? combinationRef.current.working[0] : null;
+    const radiusProject = projects.find(p => p.id === (combineStartId ?? latest.current.selectedProjectId ?? projectId ?? (pair ? pair.projectA : null)));
     const radiusCenter = radiusProject ? center(radiusProject) : null;
-    (m.getSource('radius') as GeoJSONSource).setData(settings.current.radius && radiusCenter ? { type: 'FeatureCollection', features: [radiusFeature(radiusCenter)] } : empty);
+    (m.getSource('radius') as GeoJSONSource).setData((settings.current.radius || combineStartId !== null) && radiusCenter ? { type: 'FeatureCollection', features: [radiusFeature(radiusCenter)] } : empty);
   };
   useEffect(() => {
     if (!host.current) return;
@@ -150,10 +237,11 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       m.addLayer({ id: 'radius-edge', type: 'line', source: 'radius', paint: { 'line-color': '#7299fa', 'line-width': 1, 'line-dasharray': [4, 4] } });
       m.addSource('gridlock', { type: 'geojson', data: empty });
       m.addLayer({ id: 'endpoint-guides', type: 'line', source: 'gridlock', filter: ['==', 'kind', 'guide'], paint: { 'line-color': utilityColorExpression, 'line-width': 2, 'line-dasharray': [2, 3], 'line-opacity': .7 } });
+      m.addLayer({ id: 'combined-project-links', type: 'line', source: 'gridlock', filter: ['==', 'kind', 'combined-link'], paint: { 'line-color': '#a48aff', 'line-width': 3 } });
       m.addLayer({ id: 'pair-connector', type: 'line', source: 'gridlock', filter: ['==', 'kind', 'connector'], paint: { 'line-color': '#a48aff', 'line-width': 3 } });
       m.addLayer({ id: 'endpoint-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'endpoint'], paint: { 'circle-color': utilityColorExpression, 'circle-radius': 4, 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
-      m.addLayer({ id: 'project-halo', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': utilityColorExpression, 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 14, ['boolean', ['get', 'utilityMatch'], false], 12, 10], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .08, .18] } });
-      m.addLayer({ id: 'project-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': utilityColorExpression, 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 8, ['boolean', ['get', 'utilityMatch'], false], 7, 5], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .26, 1], 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
+      m.addLayer({ id: 'project-halo', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': projectColorExpression, 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 14, ['boolean', ['get', 'utilityMatch'], false], 12, 10], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .08, .18] } });
+      m.addLayer({ id: 'project-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': projectColorExpression, 'circle-radius': ['case', ['boolean', ['get', 'selected'], false], 8, ['boolean', ['get', 'utilityMatch'], false], 7, 5], 'circle-opacity': ['case', ['boolean', ['get', 'dimmed'], false], .26, 1], 'circle-stroke-width': 2, 'circle-stroke-color': '#ffffff' } });
       m.addLayer({ id: 'draft-project-points', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'draft'], paint: { 'circle-color': '#d94f3d', 'circle-radius': 9, 'circle-stroke-width': 3, 'circle-stroke-color': '#ffffff' } });
       m.addLayer({ id: 'draft-project-labels', type: 'symbol', source: 'gridlock', filter: ['==', 'kind', 'draft'], layout: { 'text-field': ['get', 'title'], 'text-size': 11, 'text-offset': [0, 1.6], 'text-anchor': 'top', 'text-allow-overlap': true }, paint: { 'text-color': '#243044', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
       m.addLayer({ id: 'project-hit-area', type: 'circle', source: 'gridlock', filter: ['==', 'kind', 'project'], paint: { 'circle-color': '#000000', 'circle-radius': 16, 'circle-opacity': 0 } });
@@ -161,7 +249,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       m.addLayer({ id: 'distance-labels', type: 'symbol', source: 'gridlock', filter: ['==', 'kind', 'distance'], layout: { 'text-field': ['get', 'label'], 'text-size': 12, 'text-offset': [0, -1.8], 'text-anchor': 'bottom', 'text-allow-overlap': true }, paint: { 'text-color': '#243044', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
       m.on('click', 'project-hit-area', e => {
         const id = e.features?.[0]?.properties?.id;
-        if (typeof id === 'string') latest.current.onProject(id);
+        if (typeof id === 'string') projectClickHandler.current(id);
       });
       m.on('mouseenter', 'project-hit-area', () => { m.getCanvas().style.cursor = 'pointer'; });
       m.on('mouseleave', 'project-hit-area', () => { m.getCanvas().style.cursor = ''; });
@@ -176,16 +264,21 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   }, []);
   const previousTheme = useRef(props.theme);
   useEffect(() => { if (previousTheme.current !== props.theme && map.current) { previousTheme.current = props.theme; setReady(false); map.current.setStyle(styleUrl(props.theme)); } }, [props.theme]);
-  useEffect(() => { update(); }, [props.projects, props.pair, props.projectId, props.selectedProjectId, props.selectedUtility, ready, radius, guides]);
+  useEffect(() => { update(); }, [props.projects, props.createdProjectIds, props.pair, props.projectId, props.selectedProjectId, props.selectedCombinedProjectIds, props.selectedUtility, ready, radius, guides, combination]);
   useEffect(() => { if (props.pair && !props.selectedProjectId) fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB)); }, [props.pair?.id, props.selectedProjectId]);
   return <div className="map-shell">
     <div ref={host} className="map-canvas" role="region" aria-label="Interactive map of transmission project centers" />
     <div className="map-heading"><span className="eyebrow">PROJECT EXPLORER</span><h2>Carolinas, Georgia & South Carolina</h2><span className="map-subtitle">{props.pair ? 'Selected coordination opportunity' : `${locatedProjects} mapped centers · ${visibleUtilities.length} utilities`}</span></div>
     <div className="map-tools">
       <button className="map-button" title="Show full U.S." aria-label="Show full U.S." onClick={() => resetUsView()}><Expand size={17}/></button>
-      {props.pair && <button className="map-button" title="Fit selected pair" aria-label="Fit selected pair" onClick={() => fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB))}><LocateFixed size={17}/></button>}
+      {(props.pair || (props.selectedCombinedProjectIds?.length ?? 0) > 1) && <button className="map-button" title={props.pair ? 'Fit selected pair' : 'Fit combined projects'} aria-label={props.pair ? 'Fit selected pair' : 'Fit combined projects'} onClick={() => fit(props.projects.filter(p => props.pair ? p.id === props.pair.projectA || p.id === props.pair.projectB : props.selectedCombinedProjectIds?.includes(p.id) ?? false))}><LocateFixed size={17}/></button>}
       <button className={`map-button ${layersOpen ? 'active' : ''}`} title="Map layers" aria-label="Map layers" aria-expanded={layersOpen} onClick={() => setLayersOpen(!layersOpen)}><Layers size={17}/></button>
+      <div className="combine-map-control">
+        <button className={`map-button combine-project-button ${combination.active ? 'active' : ''}`} aria-label={combination.active ? 'Finish linking projects' : 'Combine Multiple Projects'} aria-pressed={combination.active} onClick={toggleCombination}><svg className="combine-chain-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span className="combine-project-tooltip" aria-hidden="true">{combination.active ? 'Finish Linking' : 'Combine Multiple Projects'}</span></button>
+        {uncombineTargetId && <button className="map-button combine-project-button uncombine-project-button" aria-label="Uncombine Selected Projects" onClick={uncombineSelectedProject}><svg className="combine-chain-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M9.5 14.5a5 5 0 0 0 7.6.5l3-3a5 5 0 0 0-7.1-7.1L11.5 6.4"/><path d="M14.5 9.5a5 5 0 0 0-7.6-.5l-3 3a5 5 0 0 0 7.1 7.1l1.5-1.5"/><path d="m3 3 18 18"/></svg><span className="combine-project-tooltip" aria-hidden="true">Uncombine Selected Projects</span></button>}
+      </div>
     </div>
+    {combineMessage && <div className="combine-status" role="status"><span>{combineMessage}</span><button aria-label="Dismiss project linking message" onClick={() => setCombineMessage('')}>×</button></div>}
     {layersOpen && <div className="layers-popover"><strong>Map layers</strong><label><input type="checkbox" checked={guides} onChange={e => setGuides(e.target.checked)}/> Selected endpoints & guides</label><label><input type="checkbox" checked={radius} onChange={e => setRadius(e.target.checked)}/> 25 mi search radius</label><p>Radius draws 25 miles around each selected project center. Dashed guides are not verified routes.</p></div>}
     {!ready && !error && <div className="map-notice"><span className="spinner"/> Loading basemap</div>}
     {error && <div className="map-notice" role="status">Basemap unavailable. Project results are still accessible.<button className="text-button" onClick={() => { setError(false); map.current?.setStyle(styleUrl(props.theme), { diff: false }); }}><RotateCcw size={14}/> Retry map</button></div>}
