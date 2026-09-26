@@ -29,7 +29,7 @@ function improveMapStyle(style: StyleDocument, theme: 'light' | 'dark') {
     highway_motorway_casing: '#26374c', highway_motorway_inner: '#4b6079', highway_motorway_subtle: '#3a4e68',
     road_pier: '#364a62',
   };
-  const boundaryColor = theme === 'dark' ? '#d2daea' : '#59677c';
+  const boundaryColor = theme === 'dark' ? '#f2f6ff' : '#2f4057';
   for (const layer of style.layers) {
     if (theme === 'dark') {
       if (layer.id === 'background') layer.paint = { ...layer.paint, 'background-color': '#101827' };
@@ -41,8 +41,10 @@ function improveMapStyle(style: StyleDocument, theme: 'light' | 'dark') {
     const boundaryKey = `${layer.id} ${layer['source-layer'] ?? ''}`.toLowerCase();
     if (layer.type === 'line' && (boundaryKey.includes('boundary') || boundaryKey.includes('admin'))) {
       layer.minzoom = 0;
-      layer.layout = { ...layer.layout, visibility: 'visible' };
-      layer.paint = { ...layer.paint, 'line-color': boundaryColor, 'line-opacity': theme === 'dark' ? .86 : .72, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, .8, 4, 1, 7, 1.25, 10, 1.75] };
+      layer.layout = { ...layer.layout, visibility: 'visible', 'line-cap': 'round', 'line-join': 'round' };
+      const paint = { ...layer.paint };
+      delete paint['line-dasharray'];
+      layer.paint = { ...paint, 'line-color': boundaryColor, 'line-opacity': theme === 'dark' ? .96 : .9, 'line-blur': 0, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, 1.45, 4, 1.8, 7, 2.35, 10, 3.1] };
     }
   }
   return style;
