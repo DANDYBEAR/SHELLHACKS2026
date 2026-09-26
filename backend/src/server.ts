@@ -6,9 +6,10 @@ import { z } from 'zod';
 import { calculateOpportunities, candidateCount } from '../../shared/analysis';
 const coordinate = z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]).nullable();
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(s => Number.isFinite(Date.parse(s)) && new Date(s).toISOString().slice(0, 10) === s);
+const usStateBoundaries = JSON.parse(await readFile(new URL('../../frontend/src/data/us-states.json', import.meta.url), 'utf8'));
 const endpoint = z.object({ name: z.string(), coordinates: coordinate });
 const project = z.object({
-  id: z.string(), utility: z.string().min(2), state: z.string(), name: z.string(), shortName: z.string(),
+  id: z.string(), utility: z.enum(['DESC', 'GPC']), state: z.string(), name: z.string(), shortName: z.string(),
   endpoints: z.tuple([endpoint, endpoint]), inServiceDate: date.nullable(), rawDate: z.string(), sourceRow: z.number(),
   sourceProjectId: z.string().nullable(), document: z.string().nullable(), documentPage: z.number().nullable(), notes: z.array(z.string()),
 });
@@ -22,6 +23,24 @@ const basemapPrefix = '/api/basemap/';
 const tileHost = 'https://tiles.openfreemap.org/';
 const allowedBasemapPaths = /^(?:styles\/(?:positron|dark)(?:\/style\.json)?|planet(?:\/[a-zA-Z0-9_]+\/[0-9]+\/[0-9]+\/[0-9]+\.pbf)?|natural_earth\/ne2sr\/[0-9]+\/[0-9]+\/[0-9]+\.png|sprites\/[a-zA-Z0-9_./@-]+\.(?:json|png)|fonts\/[a-zA-Z0-9%+_., -]+\/[0-9]+-[0-9]+\.pbf)$/;
 type StyleDocument = { layers: Array<{ id: string; type: string; minzoom?: number; maxzoom?: number; filter?: unknown; paint?: Record<string, unknown>; layout?: Record<string, unknown>; ['source-layer']?: string }> };
+function expressionFilter(filter: unknown): unknown {
+  if (!Array.isArray(filter) || typeof filter[0] !== 'string') return filter;
+  const [operator, ...args] = filter;
+  if (operator === 'all' || operator === 'any') return [operator, ...args.map(expressionFilter)];
+  if (operator === 'none') return ['!', ['any', ...args.map(expressionFilter)]];
+  if ((operator === 'has' || operator === '!has') && typeof args[0] === 'string') {
+    const exists = ['has', args[0]];
+    return operator === '!has' ? ['!', exists] : exists;
+  }
+  if (['==', '!=', '>', '>=', '<', '<='].includes(operator) && typeof args[0] === 'string' && args.length === 2) {
+    return [operator, ['get', args[0]], args[1]];
+  }
+  if ((operator === 'in' || operator === '!in') && typeof args[0] === 'string' && args.length > 1) {
+    const membership = ['in', ['get', args[0]], ['literal', args.slice(1)]];
+    return operator === '!in' ? ['!', membership] : membership;
+  }
+  return filter;
+}
 function fallbackMapStyle(theme: 'light' | 'dark') {
   return {
     version: 8,
@@ -55,16 +74,23 @@ function improveMapStyle(style: StyleDocument, theme: 'light' | 'dark') {
     const boundaryKey = `${layer.id} ${layer['source-layer'] ?? ''}`.toLowerCase();
     if (layer.type === 'line' && (boundaryKey.includes('boundary') || boundaryKey.includes('admin'))) {
       layer.minzoom = 0;
-      const isCountryBoundary = layer.id === 'boundary_2';
+      const isCountryBoundary = layer.id === 'boundary_2' || layer.id.toLowerCase().includes('country border');
       layer.layout = { ...layer.layout, visibility: isCountryBoundary ? 'visible' : 'none', 'line-cap': 'round', 'line-join': 'round' };
       const paint = { ...layer.paint };
-      delete paint['line-dasharray'];
-      layer.paint = { ...paint, 'line-color': boundaryColor, 'line-opacity': theme === 'dark' ? .82 : .72, 'line-blur': 0, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, .9, 4, 1.1, 7, 1.45, 10, 2] };
+      layer.paint = { ...paint, 'line-color': boundaryColor, 'line-dasharray': [3, 2], 'line-opacity': theme === 'dark' ? .82 : .72, 'line-blur': 0, 'line-width': ['interpolate', ['linear'], ['zoom'], 2, .9, 4, 1.1, 7, 1.45, 10, 2] };
     }
-    if (layer.type === 'symbol' && layer['source-layer'] === 'place' && layer.id === 'label_state') layer.layout = { ...layer.layout, visibility: 'none' };
-    if (layer.type === 'symbol' && layer['source-layer'] === 'place' && layer.id.startsWith('label_city')) layer.minzoom = Math.max(layer.minzoom ?? 0, 5.5);
-    if (layer.type === 'symbol' && layer['source-layer'] === 'place' && layer.id.startsWith('label_country_')) {
-      layer.filter = ['all', layer.filter ?? true, ['==', ['coalesce', ['get', 'name_en'], ['get', 'name']], 'United States']];
+    if (layer.type === 'symbol' && layer['source-layer'] === 'place') {
+      layer.filter = ['all', expressionFilter(layer.filter ?? true), ['any', ['==', ['get', 'iso_a2'], 'US'], ['within', usStateBoundaries]], ['!=', ['get', 'class'], 'state'], ['!=', ['get', 'class'], 'country']];
+      const labelId = layer.id.toLowerCase();
+      if (labelId.includes('country')) {
+        layer.minzoom = 0;
+        layer.maxzoom = Math.min(layer.maxzoom ?? 24, 4.5);
+      } else if (labelId.includes('state')) {
+        layer.minzoom = Math.max(layer.minzoom ?? 0, 2);
+        layer.maxzoom = Math.min(layer.maxzoom ?? 24, 8);
+      } else if (labelId.includes('city') || labelId.includes('place') || labelId.includes('town') || labelId.includes('village')) {
+        layer.minzoom = Math.max(layer.minzoom ?? 0, 9.5);
+      }
     }
   }
   return style;
