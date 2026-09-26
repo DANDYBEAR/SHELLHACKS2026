@@ -1,0 +1,5 @@
+{
+  "name": "@gridlock/backend", "private": true, "version": "0.1.0", "type": "module",
+  "scripts": { "dev": "tsx watch src/server.ts", "start": "tsx src/server.ts" },
+  "dependencies": { "tsx": "^4.20.0", "zod": "^3.25.0" }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "gridlock-prototype",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": ["frontend", "backend"],
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c cyan,blue \"npm run dev -w backend\" \"npm run dev -w frontend\"",
+    "build": "tsc --noEmit && npm run build -w frontend",
+    "test": "vitest run",
+    "test:browser": "node tests/map-smoke.mjs",
+    "start": "npm run start -w backend"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.2.0",
+    "playwright": "^1.62.1",
+    "typescript": "^5.9.0",
+    "vitest": "^4.1.11"
+  }
+}
