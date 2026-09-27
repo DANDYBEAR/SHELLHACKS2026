@@ -31,6 +31,13 @@ function loadProjects(): Project[] {
       sd.file_name AS document, p.document_page AS documentPage
     FROM projects p
     LEFT JOIN source_documents sd ON sd.id = p.document_id
+    WHERE EXISTS (
+      SELECT 1
+      FROM project_endpoints e
+      WHERE e.project_id = p.id
+        AND e.longitude IS NOT NULL
+        AND e.latitude IS NOT NULL
+    )
     ORDER BY p.source_row, p.id
   `).all() as ProjectRow[];
   const endpointRows = db.prepare(`
@@ -80,6 +87,20 @@ function loadCandidateCount(): number {
     SELECT COUNT(*) AS count
     FROM projects a
     JOIN projects b ON a.id < b.id AND a.utility_code <> b.utility_code
+    WHERE EXISTS (
+      SELECT 1
+      FROM project_endpoints ea
+      WHERE ea.project_id = a.id
+        AND ea.longitude IS NOT NULL
+        AND ea.latitude IS NOT NULL
+    )
+      AND EXISTS (
+        SELECT 1
+        FROM project_endpoints eb
+        WHERE eb.project_id = b.id
+          AND eb.longitude IS NOT NULL
+          AND eb.latitude IS NOT NULL
+      )
   `).get() as { count: number };
   return row.count;
 }

@@ -306,7 +306,7 @@ def write_rows(rows: list[dict[str, Any]]) -> dict[str, int]:
     located_count = 0
     for index, row in enumerate(rows, start=1):
         project_id = project_db_id(row["project_id"])
-        locations = title_matches(f"{row['bold_title_name']} {row['project_description']}")
+        locations = title_matches(f"{row['bold_title_name']} {row['project_description']}", "SC")
         if locations:
             located_count += 1
         state = locations[0][1] if locations else "SC"

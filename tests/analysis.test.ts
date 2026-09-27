@@ -107,6 +107,11 @@ describe('dataset imports', () => {
     expect(irpVolume3Projects.every(p => p.document === '2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf')).toBe(true);
     expect(irpVolume3Projects.every(p => p.sourceProjectId && p.name && p.rawDate)).toBe(true);
   });
+  it('uses sponsor state context for ambiguous city names', () => {
+    const doyle = irpVolume3Projects.find(p => p.sourceProjectId === '20234');
+    expect(doyle?.state).toBe('GA');
+    expect(center(doyle!)).toEqual([-83.7132, 33.7948]);
+  });
 });
 describe('geographic and timing boundaries', () => {
   it.each([[0, 1], [.99999, 1], [1, 2], [4.99999, 2], [5, 3], [24.99999, 3], [25, null], [25.01, null], [-1, null], [NaN, null]])('classifies %s miles as tier %s', (distance, tier) => expect(tierForDistance(distance as number)).toBe(tier));

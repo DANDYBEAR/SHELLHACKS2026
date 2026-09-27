@@ -85,6 +85,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   const [layersOpen, setLayersOpen] = useState(false), [radius, setRadius] = useState(false), [guides, setGuides] = useState(true);
   const [combination, setCombination] = useState<ProjectCombination>({ active: false, working: [], groups: [] });
   const [combineMessage, setCombineMessage] = useState('');
+  const [overlapPicker, setOverlapPicker] = useState<{ x: number; y: number; ids: string[] } | null>(null);
   const combinationRef = useRef(combination); combinationRef.current = combination;
   const updateCombination = (next: ProjectCombination) => { combinationRef.current = next; setCombination(next); latest.current.onGroupsChange(next.groups); };
   const visibleUtilities = [...new Set(props.projects.map(p => p.utility))].sort((a, b) => utilityName(a).localeCompare(utilityName(b)));
@@ -107,6 +108,7 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     setDraftProjects: projects => { draftProjects.current = projects; update(); },
   }));
   const selectMapProject = (id: string) => {
+    setOverlapPicker(null);
     const current = combinationRef.current;
     if (!current.active) latest.current.onProject(id);
     if (current.active) {
@@ -247,7 +249,22 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       m.addLayer({ id: 'project-labels', type: 'symbol', source: 'gridlock', filter: ['all', ['==', 'kind', 'project'], ['==', ['get', 'selected'], true]], layout: { 'text-field': ['get', 'id'], 'text-size': 10, 'text-offset': [0, 1.9], 'text-anchor': 'top', 'text-allow-overlap': true }, paint: { 'text-color': '#243044', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
       m.addLayer({ id: 'distance-labels', type: 'symbol', source: 'gridlock', filter: ['==', 'kind', 'distance'], layout: { 'text-field': ['get', 'label'], 'text-size': 12, 'text-offset': [0, -1.8], 'text-anchor': 'bottom', 'text-allow-overlap': true }, paint: { 'text-color': '#243044', 'text-halo-color': '#ffffff', 'text-halo-width': 2 } });
       m.on('click', 'project-hit-area', e => {
-        const id = e.features?.[0]?.properties?.id;
+        const padding = 10;
+        const features = m.queryRenderedFeatures(
+          [[e.point.x - padding, e.point.y - padding], [e.point.x + padding, e.point.y + padding]],
+          { layers: ['project-hit-area'] },
+        );
+        const ids = [...new Set(features.map(feature => feature.properties?.id).filter((id): id is string => typeof id === 'string'))];
+        if (ids.length > 1) {
+          const ranked = ids
+            .map(id => latest.current.projects.find(project => project.id === id))
+            .filter((project): project is Project => project !== undefined)
+            .sort((a, b) => utilityName(a.utility).localeCompare(utilityName(b.utility)) || a.shortName.localeCompare(b.shortName) || a.id.localeCompare(b.id))
+            .map(project => project.id);
+          setOverlapPicker({ x: e.point.x, y: e.point.y, ids: ranked });
+          return;
+        }
+        const id = ids[0] ?? e.features?.[0]?.properties?.id;
         if (typeof id === 'string') projectClickHandler.current(id);
       });
       m.on('mouseenter', 'project-hit-area', () => { m.getCanvas().style.cursor = 'pointer'; });
@@ -265,6 +282,9 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   useEffect(() => { if (previousTheme.current !== props.theme && map.current) { previousTheme.current = props.theme; setReady(false); map.current.setStyle(styleUrl(props.theme)); } }, [props.theme]);
   useEffect(() => { update(); }, [props.projects, props.createdProjectIds, props.pair, props.projectId, props.selectedProjectId, props.selectedCombinedProjectIds, props.selectedUtility, ready, radius, guides, combination]);
   useEffect(() => { if (props.pair && !props.selectedProjectId) fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB)); }, [props.pair?.id, props.selectedProjectId]);
+  const overlapProjects = overlapPicker
+    ? overlapPicker.ids.map(id => props.projects.find(project => project.id === id)).filter((project): project is Project => project !== undefined)
+    : [];
   return <div className="map-shell">
     <div ref={host} className="map-canvas" role="region" aria-label="Interactive map of transmission project centers" />
     <div className="map-tools">
@@ -277,6 +297,13 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
       </div>
     </div>
     {combineMessage && <div className="combine-status" role="status"><span>{combineMessage}</span><button aria-label="Dismiss project linking message" onClick={() => setCombineMessage('')}>×</button></div>}
+    {overlapPicker && overlapProjects.length > 1 && <div className="overlap-picker" style={{ left: Math.min(overlapPicker.x + 12, Math.max(16, (host.current?.clientWidth ?? 360) - 292)), top: Math.min(overlapPicker.y + 12, Math.max(16, (host.current?.clientHeight ?? 360) - 236)) }} role="dialog" aria-label="Choose overlapping project">
+      <div className="overlap-picker-heading"><strong>{overlapProjects.length} projects here</strong><button aria-label="Close overlapping project chooser" onClick={() => setOverlapPicker(null)}>×</button></div>
+      {overlapProjects.map(project => <button key={project.id} className="overlap-project-option" onClick={() => projectClickHandler.current(project.id)}>
+        <i className="utility-dot" style={{ background: utilityColor(project.utility) }}/>
+        <span><strong>{project.shortName}</strong><small>{utilityName(project.utility)} · {project.id}</small></span>
+      </button>)}
+    </div>}
     {layersOpen && <div className="layers-popover"><strong>Map layers</strong><label><input type="checkbox" checked={guides} onChange={e => setGuides(e.target.checked)}/> Selected endpoints & guides</label><label><input type="checkbox" checked={radius} onChange={e => setRadius(e.target.checked)}/> 25 mi search radius</label><p>Radius draws 25 miles around each selected project center. Dashed guides are not verified routes.</p></div>}
     {!ready && !error && <div className="map-notice"><span className="spinner"/> Loading basemap</div>}
     {error && <div className="map-notice" role="status">Basemap unavailable. Project results are still accessible.<button className="text-button" onClick={() => { setError(false); map.current?.setStyle(styleUrl(props.theme), { diff: false }); }}><RotateCcw size={14}/> Retry map</button></div>}

@@ -286,7 +286,7 @@ def write_rows(rows: list[dict[str, Any]]) -> dict[str, int]:
         ensure_utility(con, utility_code, display_name, state_scope)
         sponsors.add(utility_code)
         project_id = project_db_id(row["teams"])
-        locations = title_matches(row["project_name"])
+        locations = title_matches(row["project_name"], state_scope)
         if locations:
             located_count += 1
         state = locations[0][1] if locations else state_scope or "GA"

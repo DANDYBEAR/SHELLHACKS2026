@@ -180,6 +180,9 @@ PLACE_COORDS: dict[str, tuple[str, str, float, float]] = {
     "wateree": ("Wateree", "SC", -80.7040, 33.8354),
     "yemassee": ("Yemassee", "SC", -80.8507, 32.6902),
 }
+PLACE_STATE_OVERRIDES: dict[tuple[str, str], tuple[str, str, float, float]] = {
+    ("monroe", "GA"): ("Monroe", "GA", -83.7132, 33.7948),
+}
 PLACE_KEYS = sorted(PLACE_COORDS, key=len, reverse=True)
 
 
@@ -233,10 +236,17 @@ def project_db_id(project_id: str) -> str:
     return f"{UTILITY_CODE}_{safe}"
 
 
-def title_matches(text: str) -> list[tuple[str, str, float, float]]:
+def state_set(value: str | None) -> set[str]:
+    if not value:
+        return set()
+    return {part for part in re.split(r"[^A-Z]+", value.upper()) if len(part) == 2}
+
+
+def title_matches(text: str, preferred_state: str | None = None) -> list[tuple[str, str, float, float]]:
     normalized = f" {normalize_for_match(text)} "
     matches: list[tuple[int, str, str, float, float]] = []
     used_spans: list[tuple[int, int]] = []
+    allowed_states = state_set(preferred_state)
     for key in PLACE_KEYS:
         pattern = f" {normalize_for_match(key)} "
         start = normalized.find(pattern)
@@ -245,7 +255,12 @@ def title_matches(text: str) -> list[tuple[str, str, float, float]]:
         span = (start, start + len(pattern))
         if any(not (span[1] <= a or span[0] >= b) for a, b in used_spans):
             continue
-        label, state, lon, lat = PLACE_COORDS[key]
+        label, state, lon, lat = next(
+            (PLACE_STATE_OVERRIDES[(key, preferred)] for preferred in allowed_states if (key, preferred) in PLACE_STATE_OVERRIDES),
+            PLACE_COORDS[key],
+        )
+        if allowed_states and state not in allowed_states:
+            continue
         matches.append((start, label, state, lon, lat))
         used_spans.append(span)
     deduped: list[tuple[str, str, float, float]] = []
@@ -460,7 +475,7 @@ def promote_rows(con: sqlite3.Connection, rows: list[dict[str, Any]], dataset_id
 
     for index, row in enumerate(rows, start=1):
         project_id = project_db_id(row["project_id"])
-        locations = title_matches(row["reliability_project"])
+        locations = title_matches(row["reliability_project"], "NC/SC")
         state = locations[0][1] if locations else "NC/SC"
         if locations:
             located_count += 1
