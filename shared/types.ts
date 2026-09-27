@@ -11,7 +11,7 @@ export type Tier = 1 | 2 | 3;
 export type Opportunity = {
   id: string; projectA: string; projectB: string; distanceMi: number;
   timeGapDays: number | null; tier: Tier;
-  distanceScore: number; timelineScore: number; compatibilityScore: number; totalScore: number;
+  distanceScore: number; timelineScore: number; totalScore: number;
 };
 export type Dataset = {
   name: string; source: string; referenceDate: string;

@@ -21,16 +21,16 @@ def distance_points(distance_mi: float) -> int:
     if not math.isfinite(distance_mi) or distance_mi < 0 or distance_mi > MAX_COMPARISON_DISTANCE_MI:
         return 0
     if distance_mi <= 2:
-        return 40
+        return 50
     if distance_mi <= 5:
-        return _ranged_score(distance_mi, 2, 5, 39, 36)
+        return _ranged_score(distance_mi, 2, 5, 49, 45)
     if distance_mi <= 10:
-        return _ranged_score(distance_mi, 5, 10, 35, 30)
+        return _ranged_score(distance_mi, 5, 10, 44, 38)
     if distance_mi <= 15:
-        return _ranged_score(distance_mi, 10, 15, 29, 22)
+        return _ranged_score(distance_mi, 10, 15, 36, 28)
     if distance_mi <= 20:
-        return _ranged_score(distance_mi, 15, 20, 21, 14)
-    return _ranged_score(distance_mi, 20, 25, 13, 5)
+        return _ranged_score(distance_mi, 15, 20, 26, 18)
+    return _ranged_score(distance_mi, 20, 25, 16, 6)
 
 
 def timeline_points(day_gap: int | None) -> int:
@@ -44,26 +44,19 @@ def timeline_points(day_gap: int | None) -> int:
     if day_gap is None or not math.isfinite(day_gap) or day_gap < 0:
         return 0
     if day_gap <= 30:
-        return _ranged_score(day_gap, 0, 30, 29, 24)
+        return _ranged_score(day_gap, 0, 30, 36, 30)
     if day_gap <= 90:
-        return _ranged_score(day_gap, 31, 90, 23, 18)
+        return _ranged_score(day_gap, 31, 90, 29, 23)
     if day_gap <= 180:
-        return _ranged_score(day_gap, 91, 180, 17, 10)
+        return _ranged_score(day_gap, 91, 180, 21, 13)
     if day_gap <= 365:
-        return _ranged_score(day_gap, 181, 365, 9, 3)
+        return _ranged_score(day_gap, 181, 365, 11, 4)
     if day_gap <= 730:
         return _ranged_score(day_gap, 366, 730, 2, 0)
     return 0
 
 
-def compatibility_points(value: float | int | None = None) -> int:
-    if value is None or not math.isfinite(value):
-        return 0
-    return max(0, min(20, round(value)))
-
-
-def opportunity_points(distance_mi: float, day_gap: int | None, compatibility: float | int | None = None) -> tuple[int, int, int, int]:
+def opportunity_points(distance_mi: float, day_gap: int | None) -> tuple[int, int, int, int]:
     distance = distance_points(distance_mi)
     timeline = timeline_points(day_gap)
-    compatible = compatibility_points(compatibility)
-    return distance, timeline, compatible, distance + timeline + compatible
+    return distance, timeline, 0, distance + timeline

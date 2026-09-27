@@ -82,7 +82,7 @@ def date_gap(a: str | None, b: str | None) -> int | None:
 
 
 def tier(distance: float) -> int | None:
-    if not math.isfinite(distance) or distance < 0 or distance >= 25:
+    if not math.isfinite(distance) or distance < 0 or distance > 25:
         return None
     return 1 if distance < 1 else 2 if distance < 5 else 3
 
@@ -168,13 +168,12 @@ def main() -> None:
         INSERT INTO scoring_profiles(name, description, max_distance_mi, immediate_distance_mi, local_distance_mi, active)
         VALUES (?, ?, 25, 1, 5, 1)
         """,
-        ("prototype-v2", "100-point opportunity score: distance 40, timeline 40, coordination compatibility 20."),
+        ("prototype-v2", "100-point opportunity score: distance 50 and timeline 50."),
     )
     profile_id = con.execute("SELECT last_insert_rowid()").fetchone()[0]
     parameters = [
-        ("distance", 40, "higher_is_better", "Center-to-center distance points. Pairs over 25 miles are excluded."),
-        ("timeline", 40, "higher_is_better", "Construction overlap/date-proximity points. Imported in-service dates currently use date proximity."),
-        ("compatibility", 20, "higher_is_better", "Future AI-derived construction, activity, component, ROW/access, and logistics compatibility points."),
+        ("distance", 50, "higher_is_better", "Center-to-center distance points. Pairs over 25 miles are excluded."),
+        ("timeline", 50, "higher_is_better", "Construction overlap/date-proximity points. Imported in-service dates currently use date proximity."),
     ]
     con.executemany(
         "INSERT INTO scoring_parameters(profile_id, key, weight, direction, description) VALUES (?, ?, ?, ?, ?)",
@@ -193,12 +192,12 @@ def main() -> None:
                 continue
             gap = date_gap(a.get("inServiceDate"), b.get("inServiceDate"))
             distance_points, timeline_points, compatibility_points, total_points = opportunity_points(distance, gap)
-            timing_score = round(timeline_points / 40, 4)
+            timing_score = round(timeline_points / 50, 4)
             location_score = min(
                 con.execute("SELECT location_confidence FROM projects WHERE id = ?", (a["id"],)).fetchone()[0],
                 con.execute("SELECT location_confidence FROM projects WHERE id = ?", (b["id"],)).fetchone()[0],
             )
-            resource_score = round(compatibility_points / 20, 4)
+            resource_score = 0
             composite = round(total_points / 100, 4)
             pair = sorted([a["id"], b["id"]])
             con.execute(

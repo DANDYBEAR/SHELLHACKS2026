@@ -13,7 +13,7 @@ export function distanceMiles(a: Coordinate, b: Coordinate): number {
   return 2 * EARTH_RADIUS_MI * Math.asin(Math.sqrt(Math.min(1, Math.max(0, h))));
 }
 export function tierForDistance(distance: number): Tier | null {
-  if (!Number.isFinite(distance) || distance < 0 || distance >= MAX_COMPARISON_DISTANCE_MI) return null;
+  if (!Number.isFinite(distance) || distance < 0 || distance > MAX_COMPARISON_DISTANCE_MI) return null;
   return distance < 1 ? 1 : distance < 5 ? 2 : 3;
 }
 export function dayGap(a: string | null, b: string | null): number | null {
@@ -27,27 +27,26 @@ function rangedScore(value: number, start: number, end: number, high: number, lo
 }
 export function distanceScore(distance: number): number {
   if (!Number.isFinite(distance) || distance < 0 || distance > MAX_COMPARISON_DISTANCE_MI) return 0;
-  if (distance <= 2) return 40;
-  if (distance <= 5) return rangedScore(distance, 2, 5, 39, 36);
-  if (distance <= 10) return rangedScore(distance, 5, 10, 35, 30);
-  if (distance <= 15) return rangedScore(distance, 10, 15, 29, 22);
-  if (distance <= 20) return rangedScore(distance, 15, 20, 21, 14);
-  return rangedScore(distance, 20, 25, 13, 5);
+  if (distance <= 2) return 50;
+  if (distance <= 5) return rangedScore(distance, 2, 5, 49, 45);
+  if (distance <= 10) return rangedScore(distance, 5, 10, 44, 38);
+  if (distance <= 15) return rangedScore(distance, 10, 15, 36, 28);
+  if (distance <= 20) return rangedScore(distance, 15, 20, 26, 18);
+  return rangedScore(distance, 20, 25, 16, 6);
 }
 export function timelineScore(dayGapValue: number | null): number {
   if (dayGapValue === null || !Number.isFinite(dayGapValue) || dayGapValue < 0) return 0;
-  if (dayGapValue <= 30) return rangedScore(dayGapValue, 0, 30, 29, 24);
-  if (dayGapValue <= 90) return rangedScore(dayGapValue, 31, 90, 23, 18);
-  if (dayGapValue <= 180) return rangedScore(dayGapValue, 91, 180, 17, 10);
-  if (dayGapValue <= 365) return rangedScore(dayGapValue, 181, 365, 9, 3);
+  if (dayGapValue <= 30) return rangedScore(dayGapValue, 0, 30, 36, 30);
+  if (dayGapValue <= 90) return rangedScore(dayGapValue, 31, 90, 29, 23);
+  if (dayGapValue <= 180) return rangedScore(dayGapValue, 91, 180, 21, 13);
+  if (dayGapValue <= 365) return rangedScore(dayGapValue, 181, 365, 11, 4);
   if (dayGapValue <= 730) return rangedScore(dayGapValue, 366, 730, 2, 0);
   return 0;
 }
-export function scoreOpportunity(distanceMi: number, timeGapDays: number | null, compatibilityScore = 0) {
-  const safeCompatibility = Math.max(0, Math.min(20, Math.round(compatibilityScore)));
+export function scoreOpportunity(distanceMi: number, timeGapDays: number | null) {
   const distance = distanceScore(distanceMi);
   const timeline = timelineScore(timeGapDays);
-  return { distanceScore: distance, timelineScore: timeline, compatibilityScore: safeCompatibility, totalScore: distance + timeline + safeCompatibility };
+  return { distanceScore: distance, timelineScore: timeline, totalScore: distance + timeline };
 }
 export function rankOpportunities(pairs: Opportunity[], sort = 'coordination'): Opportunity[] {
   return [...pairs].sort((a, b) => {

@@ -15,6 +15,8 @@ Tiers are product decisions agreed in chat, not organizer-defined categories. De
 
 The new Finding_Real_Locations_Guide.docx Part 3 explicitly specifies center-to-center distance and a midpoint/single-endpoint center. Its under-25-mile rule takes priority over earlier minimum-route-distance suggestions. No physical-intersection tier is inferred from centers.
 
+Opportunity scores use two categories only: distance (50 points) and timeline (50 points), for 100 points total. Distance scores follow the supplied 0–2, >2–5, >5–10, >10–15, >15–20, and >20–25 mile bands; distances over 25 miles are excluded. Timeline scores follow the supplied construction-overlap and date-separation bands, scaled from 40 to 50 points. Because construction windows are not present in current records, current timeline scores use the separation between planned in-service dates.
+
 ## Product
 
 Frontend-first local prototype with an actual read-only API. A file-based dataset is sufficient for ten projects, so no database service or authentication is introduced. Keep db separate so a database can later replace the repository without changing the UI contract.

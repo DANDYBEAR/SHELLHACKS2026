@@ -231,9 +231,9 @@ def rebuild_opportunity_scores(con: sqlite3.Connection, dataset_id: int) -> int:
                 continue
             gap = date_gap(a["in_service_date"], b["in_service_date"])
             distance_points, timeline_points, compatibility_points, total_points = opportunity_points(distance, gap)
-            timing_score = round(timeline_points / 40, 4)
+            timing_score = round(timeline_points / 50, 4)
             location_score = min(a["location_confidence"], b["location_confidence"])
-            resource_score = round(compatibility_points / 20, 4)
+            resource_score = 0
             composite = round(total_points / 100, 4)
             pair = sorted([a["id"], b["id"]])
             con.execute(

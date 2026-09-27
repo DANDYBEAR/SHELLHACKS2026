@@ -70,7 +70,7 @@ describe('supplied workbook reconciliation', () => {
       expect(p.distanceMi).toBeCloseTo(distance, 2); expect(p.timeGapDays).toBe(gap);
     }
     expect(pairs.map(p => p.id)).toEqual(['DESC_3__GPC_2', 'DESC_2__GPC_1', 'DESC_3__GPC_3', 'DESC_1__GPC_1', 'DESC_5__GPC_2', 'DESC_5__GPC_3']);
-    expect(pairs.find(p => p.id === 'DESC_3__GPC_2')?.totalScore).toBe(46);
+    expect(pairs.find(p => p.id === 'DESC_3__GPC_2')?.totalScore).toBe(59);
     expect(pairs.find(p => p.id === 'DESC_2__GPC_1')?.timelineScore).toBe(0);
     expect(pairs.filter(p => p.tier === 1)).toHaveLength(0);
     expect(pairs.filter(p => p.tier === 2)).toHaveLength(1);
@@ -116,9 +116,9 @@ describe('dataset imports', () => {
   });
 });
 describe('geographic and timing boundaries', () => {
-  it.each([[0, 1], [.99999, 1], [1, 2], [4.99999, 2], [5, 3], [24.99999, 3], [25, null], [25.01, null], [-1, null], [NaN, null]])('classifies %s miles as tier %s', (distance, tier) => expect(tierForDistance(distance as number)).toBe(tier));
-  it.each([[0, 40], [2, 40], [2.1, 39], [5, 36], [10, 30], [15, 22], [20, 14], [25, 5], [25.01, 0]])('scores %s miles as %s distance points', (distance, expected) => expect(distanceScore(distance as number)).toBe(expected));
-  it.each([[0, 29], [30, 24], [31, 23], [90, 18], [180, 10], [365, 3], [366, 2], [730, 0], [3074, 0]])('scores %s date-gap days as %s timeline points', (gap, expected) => expect(timelineScore(gap as number)).toBe(expected));
+  it.each([[0, 1], [.99999, 1], [1, 2], [4.99999, 2], [5, 3], [24.99999, 3], [25, 3], [25.01, null], [-1, null], [NaN, null]])('classifies %s miles as tier %s', (distance, tier) => expect(tierForDistance(distance as number)).toBe(tier));
+  it.each([[0, 50], [2, 50], [2.1, 49], [5, 45], [10, 38], [15, 28], [20, 18], [25, 6], [25.01, 0]])('scores %s miles as %s distance points', (distance, expected) => expect(distanceScore(distance as number)).toBe(expected));
+  it.each([[0, 36], [30, 30], [31, 29], [90, 23], [180, 13], [365, 4], [366, 2], [730, 0], [3074, 0]])('scores %s date-gap days as %s timeline points', (gap, expected) => expect(timelineScore(gap as number)).toBe(expected));
   it('uses complete endpoint coordinates, preserving legitimate zeroes', () => {
     expect(center(workbookProjects[0])).toEqual([-82.051362, 33.562599]);
     expect(center(workbookProjects[2])![0]).toBeCloseTo(-81.0785475, 7);

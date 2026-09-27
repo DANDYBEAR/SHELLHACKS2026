@@ -79,7 +79,7 @@ function loadOpportunities(): Opportunity[] {
     SELECT id, project_a AS projectA, project_b AS projectB, center_distance_mi AS distanceMi,
       date_gap_days AS timeGapDays, distance_tier AS tier,
       distance_score AS distanceScore, timeline_score AS timelineScore,
-      compatibility_score AS compatibilityScore, total_score AS totalScore
+      total_score AS totalScore
     FROM opportunity_scores
   `).all() as Opportunity[];
   return rankOpportunities(rows);

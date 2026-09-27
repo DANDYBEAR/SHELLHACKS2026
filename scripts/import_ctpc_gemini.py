@@ -301,7 +301,7 @@ def date_gap(a: str | None, b: str | None) -> int | None:
 
 
 def distance_tier(distance: float) -> int | None:
-    if not math.isfinite(distance) or distance < 0 or distance >= 25:
+    if not math.isfinite(distance) or distance < 0 or distance > 25:
         return None
     return 1 if distance < 1 else 2 if distance < 5 else 3
 
@@ -569,9 +569,9 @@ def rebuild_opportunity_scores(con: sqlite3.Connection, dataset_id: int) -> int:
                 continue
             gap = date_gap(a["in_service_date"], b["in_service_date"])
             distance_points, timeline_points, compatibility_points, total_points = opportunity_points(distance, gap)
-            timing_score = round(timeline_points / 40, 4)
+            timing_score = round(timeline_points / 50, 4)
             location_score = min(a["location_confidence"], b["location_confidence"])
-            resource_score = round(compatibility_points / 20, 4)
+            resource_score = 0
             composite = round(total_points / 100, 4)
             pair = sorted([a["id"], b["id"]])
             con.execute(
