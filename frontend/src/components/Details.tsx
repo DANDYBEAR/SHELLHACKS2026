@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { ArrowDownToLine, ArrowUpRight, CalendarDays, CircleHelp, FileText, LocateFixed, MapPin, Printer, Route, X } from 'lucide-react';
+import { ArrowDownToLine, ArrowUpRight, CalendarDays, CircleHelp, FileText, LocateFixed, MapPin, Printer, Route, Trash2, X } from 'lucide-react';
 import { TIERS, utilityName, type Opportunity, type Project } from '../../../shared/types';
 import { center, distanceMiles, tierForDistance } from '../../../shared/analysis';
 import { formatDate } from './Timeline';
 import { combinedDaysApart } from './CombinedOpportunityList';
-export default function Details({ pair, projects, combinedProjects, inspected, onClose, onZoom, onExport, onPrint }: {
+export default function Details({ pair, projects, combinedProjects, inspected, canDeleteInspected, onClose, onZoom, onDeleteProject, onExport, onPrint }: {
   pair: Opportunity | null; projects: Project[]; combinedProjects: Project[]; inspected: Project | null;
-  onClose(): void; onZoom(id: string): void; onExport(): void; onPrint(): void;
+  canDeleteInspected: boolean; onClose(): void; onZoom(id: string): void; onDeleteProject(id: string): void; onExport(): void; onPrint(): void;
 }) {
   const [tab, setTab] = useState<'overview' | 'evidence'>('overview');
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const shown = combinedProjects.length > 1 ? combinedProjects : pair ? projects.filter(p => p.id === pair.projectA || p.id === pair.projectB) : inspected ? [inspected] : [];
   const combinedStart = combinedProjects.length > 1 ? center(combinedProjects[0]) : null;
   const combinedDistances = combinedStart ? combinedProjects.slice(1).map(project => {
@@ -26,7 +27,18 @@ export default function Details({ pair, projects, combinedProjects, inspected, o
     <div className="detail-tabs" role="tablist" aria-label="Opportunity details">{(['overview', 'evidence'] as const).map(t => <button key={t} id={`tab-${t}`} role="tab" aria-controls={`detail-${t}`} aria-selected={tab === t} onClick={() => setTab(t)}>{t === 'overview' ? 'Overview' : 'Evidence'}{t === 'evidence' && <FileText size={14}/>}</button>)}</div>
     <div className="detail-content" role="tabpanel" id={`detail-${tab}`} aria-labelledby={`tab-${tab}`}>
       {tab === 'overview' ? <>{shown.map(p => <section className="project-detail" key={p.id}><div className="utility-label"><i className={`utility-dot ${p.utility.toLowerCase()}`}/>{utilityName(p.utility)}<span>{p.id}</span></div><h3>{p.shortName}</h3><p className="full-project-name">{p.name}</p><div className="project-facts"><span>Planned in-service</span><strong>{formatDate(p.inServiceDate)}</strong><span>Located endpoints</span><strong>{p.endpoints.filter(e => e.coordinates).length} of 2</strong></div><button className="text-button" onClick={() => onZoom(p.id)}><LocateFixed size={15}/> Inspect at street level<ArrowUpRight size={13}/></button></section>)}{pair && <section className="coordination-note"><span className="eyebrow">POTENTIAL TO EXPLORE</span><p>{tier!.description}</p><span>Proximity does not establish shared land or overlapping construction.</span></section>}</> : <>{shown.map(p => <section className="evidence-section" key={p.id}><div className="utility-label"><i className={`utility-dot ${p.utility.toLowerCase()}`}/>{p.id}</div><h3>{p.shortName}</h3><dl><dt>Primary source</dt><dd>Projects_Overlaps.xlsx<br/>projects · row {p.sourceRow}</dd><dt>Center method</dt><dd>{p.endpoints.filter(e => e.coordinates).length === 2 ? 'Arithmetic midpoint of two endpoints' : 'Single located endpoint'}</dd><dt>Center coordinates</dt><dd>{center(p)?.map(v => v.toFixed(6)).join(', ')}<small>Longitude, latitude</small></dd><dt>Original date value</dt><dd>{p.rawDate} · workbook in-service date</dd>{p.document && <><dt>Supporting document</dt><dd>{p.document}<br/>PDF page {p.documentPage} · ID {p.sourceProjectId}</dd></>}</dl><ul className="evidence-notes">{p.notes.map(note => <li key={note}>{note}</li>)}</ul></section>)}</>}
+      {!pair && inspected && canDeleteInspected && <div className="delete-created-project-row"><button className="delete-created-project-button" onClick={() => setConfirmingDelete(true)}><Trash2 size={16}/>Delete Project</button></div>}
     </div>
+    {confirmingDelete && inspected && <div className="delete-project-confirm-backdrop">
+      <section className="delete-project-confirm" role="alertdialog" aria-modal="true" aria-labelledby="delete-project-title" aria-describedby="delete-project-message">
+        <div className="delete-project-confirm-heading"><div><span className="eyebrow">DELETE PROJECT</span><h2 id="delete-project-title">Delete this project?</h2></div></div>
+        <p id="delete-project-message">&quot;{inspected.shortName}&quot; will be removed from this session.</p>
+        <div className="delete-project-confirm-actions">
+          <button type="button" className="secondary-button" onClick={() => setConfirmingDelete(false)}>Cancel</button>
+          <button type="button" className="delete-project-confirm-action" onClick={() => { onDeleteProject(inspected.id); setConfirmingDelete(false); }}><Trash2 size={15}/>Delete Project</button>
+        </div>
+      </section>
+    </div>}
     {pair && <div className="detail-actions"><button className="primary-button" onClick={onExport}><ArrowDownToLine size={16}/> Export pair summary</button><button className="secondary-button" onClick={onPrint}><Printer size={15}/> Print / Save PDF</button></div>}
   </aside>;
 }
