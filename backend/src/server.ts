@@ -234,4 +234,4 @@ const server = createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': mime[extname(file)] ?? 'application/octet-stream' }); res.end(content);
   } catch { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found. For development, open http://localhost:5173.'); }
 });
-server.listen(Number(process.env.PORT || 3001), '127.0.0.1', () => console.log('Gridlock API: http://127.0.0.1:' + (process.env.PORT || 3001)));
+server.listen(Number(process.env.PORT || 3001), '0.0.0.0', () => console.log('Gridlock API: http://127.0.0.1:' + (process.env.PORT || 3001)));
