@@ -88,7 +88,6 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   const combinationRef = useRef(combination); combinationRef.current = combination;
   const updateCombination = (next: ProjectCombination) => { combinationRef.current = next; setCombination(next); latest.current.onGroupsChange(next.groups); };
   const visibleUtilities = [...new Set(props.projects.map(p => p.utility))].sort((a, b) => utilityName(a).localeCompare(utilityName(b)));
-  const locatedProjects = props.projects.filter(p => center(p)).length;
   const settings = useRef({ radius, guides }); settings.current = { radius, guides };
   const resetUsView = (duration = 800) => {
     map.current?.easeTo({ center: usView.center, zoom: usView.zoom, bearing: 0, pitch: 0, duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration });
@@ -268,7 +267,6 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
   useEffect(() => { if (props.pair && !props.selectedProjectId) fit(props.projects.filter(p => p.id === props.pair!.projectA || p.id === props.pair!.projectB)); }, [props.pair?.id, props.selectedProjectId]);
   return <div className="map-shell">
     <div ref={host} className="map-canvas" role="region" aria-label="Interactive map of transmission project centers" />
-    <div className="map-heading"><span className="eyebrow">PROJECT EXPLORER</span><h2>Carolinas, Georgia & South Carolina</h2><span className="map-subtitle">{props.pair ? 'Selected coordination opportunity' : `${locatedProjects} mapped centers · ${visibleUtilities.length} utilities`}</span></div>
     <div className="map-tools">
       <button className="map-button" title="Show full U.S." aria-label="Show full U.S." onClick={() => resetUsView()}><Expand size={17}/></button>
       {(props.pair || (props.selectedCombinedProjectIds?.length ?? 0) > 1) && <button className="map-button" title={props.pair ? 'Fit selected pair' : 'Fit combined projects'} aria-label={props.pair ? 'Fit selected pair' : 'Fit combined projects'} onClick={() => fit(props.projects.filter(p => props.pair ? p.id === props.pair.projectA || p.id === props.pair.projectB : props.selectedCombinedProjectIds?.includes(p.id) ?? false))}><LocateFixed size={17}/></button>}
@@ -283,6 +281,5 @@ export default forwardRef<MapHandle, Props>(function ProjectMap(props, ref) {
     {!ready && !error && <div className="map-notice"><span className="spinner"/> Loading basemap</div>}
     {error && <div className="map-notice" role="status">Basemap unavailable. Project results are still accessible.<button className="text-button" onClick={() => { setError(false); map.current?.setStyle(styleUrl(props.theme), { diff: false }); }}><RotateCcw size={14}/> Retry map</button></div>}
     <div className="map-legend">{visibleUtilities.map(utility => <span key={utility}><i className="utility-dot" style={{ background: utilityColor(utility) }}/>{utilityName(utility)}</span>)}{props.pair && <span><i className="connector-key"/> Center distance</span>}</div>
-    <div className="map-method">Center locations · Routes unverified</div>
   </div>;
 });

@@ -33,19 +33,19 @@ export const UTILITY_NAMES: Record<Utility, string> = {
   DU: 'DU',
 };
 export const UTILITY_COLORS: Record<Utility, string> = {
-  DESC: '#5486ff',
-  GPC: '#ee9649',
-  SCE: '#1f9d7a',
-  NCE: '#7c5cff',
-  GAE: '#d84f68',
-  ALE: '#a36b1f',
-  FLE: '#00a2b8',
-  CTPC: '#16a34a',
-  GTC: '#6b8e23',
-  MEAG: '#b45309',
-  OPC: '#0f766e',
-  SAV: '#be185d',
-  DU: '#475569',
+  DESC: '#2563eb',
+  GPC: '#f97316',
+  SCE: '#16a34a',
+  NCE: '#8b5cf6',
+  GAE: '#eab308',
+  ALE: '#ec4899',
+  FLE: '#000000',
+  CTPC: '#22c55e',
+  GTC: '#7c3aed',
+  MEAG: '#ea580c',
+  OPC: '#ca8a04',
+  SAV: '#db2777',
+  DU: '#000000',
 };
 export function utilityName(utility: string) {
   return UTILITY_NAMES[utility as Utility] ?? utility;
