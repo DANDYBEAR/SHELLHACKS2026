@@ -39,7 +39,6 @@ export default function CombinedOpportunityList({ groups, projectsById, selected
       <div className="card-top"><span className="rank-number">{String(numberingOffset + index + 1).padStart(2, '0')}</span>{entry.tier && <span className={`tier-badge tier-${entry.tier}`}>{TIERS[entry.tier - 1].name}</span>}<GitMerge className="card-arrow" size={14}/></div>
       {entry.projects.map(project => <div className="pair-name" key={project.id}><i className="utility-dot" style={{ background: utilityColor(project.utility) }}/><strong>{project.shortName}</strong></div>)}
       <div className="card-metrics"><span><MapPin size={13}/><b>{entry.farthest?.toFixed(2) ?? '—'} mi</b></span><span><CalendarDays size={13}/><b>{entry.daysApart.toLocaleString()}</b> days apart</span></div>
-      <div className="card-footer">Combined Projects<span>{entry.projects.length} projects</span></div>
     </button>)}
   </>;
 }
