@@ -2,7 +2,7 @@
 
 The prototype now has one local data representation for app data:
 
-- `data/gridlock.sqlite` is the generated local SQLite database read by the backend. It is intentionally ignored by Git because it is reproducible from the supplied workbook and `schema.sql`.
+- `data/gridlock.sqlite` is the seeded local SQLite database read by the backend. It is committed so teammates can pull the same test data.
 
 The backend reads SQLite for `/api/dashboard`, `/api/projects` and `/api/opportunities`. The API response shape remains frontend-compatible.
 
@@ -23,14 +23,15 @@ The refresh scripts create `db/data/gridlock.sqlite` with:
 - scoring profiles and parameter weights
 - scored utility-pair opportunities
 - optional Gemini-extracted CTPC reliability project rows
+- optional Gemini-extracted Dominion 2024-2028 $2M+ project description rows
 
 ## Current source
 
 Source: user-supplied `Projects_Overlaps.xlsx`, `projects!A1:Q11`. Validation reference: `overlaps!A1:I7`. The workbook importer preserves source row numbers, source date strings and missing endpoint coordinates, and converts Excel dates and date strings to ISO calendar dates. Coordinates are stored in GeoJSON longitude/latitude order.
 
-PDF and synthetic enrichment records are not part of the current database. `gridlock.sqlite` is rebuilt from the workbook only.
-
 The CTPC mid-year update import is separate from the workbook refresh because it requires `GEMINI_API_KEY`. Run `npm run data:import-ctpc` to parse `2025_Collaborative_Transmission_Plan_MidYear_Update_08-13-26.pdf` into `collaborative_transmission_projects`. The import keeps only clean rows with `Project ID`, `Reliability Project`, `Status`, `Transmission Owner`, `Estimated In-Service date`, and `Estimated Cost($M)`, and it rejects rows whose status is `Removed`.
+
+The Dominion descriptions import is also Gemini-backed. Run `npm run data:import-dominion-descriptions` to parse `2024-2028-2million-and-above-project-descriptions.pdf` into `dominion_project_descriptions`. The import keeps only complete entries with bold title name, project ID, project description, project status, planned in-service date, and total estimated project cost.
 
 ## Database model
 
@@ -45,6 +46,7 @@ The CTPC mid-year update import is separate from the workbook refresh because it
 - `project_centers`: computed view of center coordinates
 - `geo_contexts`: future location enrichment, including TIGER/Line identifiers
 - `collaborative_transmission_projects`: Gemini-extracted CTPC reliability projects, excluding removed rows
+- `dominion_project_descriptions`: Gemini-extracted Dominion project description entries with complete requested fields
 - `scoring_profiles`: named scoring models
 - `scoring_parameters`: weights for distance, timing, confidence and resource similarity
 - `opportunity_scores`: ranked utility-to-utility project pairs

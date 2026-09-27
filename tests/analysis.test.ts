@@ -53,6 +53,7 @@ function loadProjectsFromDb(): Dataset['projects'] {
 const projects = loadProjectsFromDb();
 const workbookProjects = projects.filter(p => p.sourceRow <= 11);
 const ctpcProjects = projects.filter(p => p.utility === 'CTPC');
+const dominionDescriptionProjects = projects.filter(p => p.id.startsWith('DESC24_'));
 describe('supplied workbook reconciliation', () => {
   it('reproduces all six distances, date gaps and 25 comparisons', () => {
     const pairs = calculateOpportunities(workbookProjects);
@@ -91,6 +92,13 @@ describe('dataset imports', () => {
     expect(ctpcProjects.every(p => p.document === '2025_Collaborative_Transmission_Plan_MidYear_Update_08-13-26.pdf')).toBe(true);
     expect(ctpcProjects.every(p => p.sourceProjectId && !p.id.includes('REMOVED'))).toBe(true);
     expect(ctpcProjects.filter(p => center(p)).length).toBeGreaterThan(60);
+  });
+  it('promotes complete Dominion project description rows into searchable map projects', () => {
+    expect(dominionDescriptionProjects).toHaveLength(43);
+    expect(dominionDescriptionProjects.every(p => p.utility === 'DESC')).toBe(true);
+    expect(dominionDescriptionProjects.every(p => p.document === '2024-2028-2million-and-above-project-descriptions.pdf')).toBe(true);
+    expect(dominionDescriptionProjects.every(p => p.sourceProjectId && p.rawDate)).toBe(true);
+    expect(dominionDescriptionProjects.filter(p => center(p)).length).toBeGreaterThan(35);
   });
 });
 describe('geographic and timing boundaries', () => {

@@ -117,6 +117,20 @@ CREATE INDEX IF NOT EXISTS idx_ctpc_owner ON collaborative_transmission_projects
 CREATE INDEX IF NOT EXISTS idx_ctpc_status ON collaborative_transmission_projects(status);
 CREATE INDEX IF NOT EXISTS idx_ctpc_eisd ON collaborative_transmission_projects(estimated_in_service_date);
 
+CREATE TABLE IF NOT EXISTS dominion_project_descriptions (
+  project_id TEXT PRIMARY KEY,
+  bold_title_name TEXT NOT NULL,
+  project_description TEXT NOT NULL,
+  project_status TEXT NOT NULL,
+  planned_in_service_date TEXT NOT NULL,
+  estimated_project_cost_total_usd REAL NOT NULL,
+  source_file TEXT NOT NULL,
+  imported_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_dominion_desc_status ON dominion_project_descriptions(project_status);
+CREATE INDEX IF NOT EXISTS idx_dominion_desc_date ON dominion_project_descriptions(planned_in_service_date);
+
 CREATE TABLE IF NOT EXISTS scoring_profiles (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,

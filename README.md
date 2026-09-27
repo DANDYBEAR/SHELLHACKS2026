@@ -67,4 +67,10 @@ To parse the CTPC mid-year update PDF with Gemini and load clean, non-removed Re
 npm run data:import-ctpc
 ```
 
-Use `npm run data:refresh-all` when you want to rebuild the workbook tables and immediately rerun the Gemini CTPC import.
+To parse the Dominion 2024-2028 $2M+ project descriptions PDF with Gemini and load only complete entries, run:
+
+```powershell
+npm run data:import-dominion-descriptions
+```
+
+Use `npm run data:refresh-all` when you want to rebuild the workbook tables and immediately rerun both Gemini imports.
