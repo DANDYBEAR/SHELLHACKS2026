@@ -23,6 +23,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from scoring import opportunity_points
+
 ROOT = Path(__file__).resolve().parents[1]
 PDF = ROOT / "2025_Collaborative_Transmission_Plan_MidYear_Update_08-13-26.pdf"
 DB = ROOT / "db" / "data" / "gridlock.sqlite"
@@ -539,8 +541,6 @@ def rebuild_opportunity_scores(con: sqlite3.Connection, dataset_id: int) -> int:
     if not profile:
         return 0
     profile_id = int(profile[0])
-    parameter_rows = con.execute("SELECT key, weight FROM scoring_parameters WHERE profile_id = ?", (profile_id,)).fetchall()
-    weights = {row[0]: row[1] for row in parameter_rows}
     projects = con.execute(
         """
         SELECT id, utility_code, state, in_service_date, location_confidence
@@ -568,29 +568,25 @@ def rebuild_opportunity_scores(con: sqlite3.Connection, dataset_id: int) -> int:
             if tier is None:
                 continue
             gap = date_gap(a["in_service_date"], b["in_service_date"])
-            distance_score = normalized_score(distance, 25)
-            timing_score = normalized_score(gap if gap is not None else 3650, 3650)
+            distance_points, timeline_points, compatibility_points, total_points = opportunity_points(distance, gap)
+            timing_score = round(timeline_points / 40, 4)
             location_score = min(a["location_confidence"], b["location_confidence"])
-            resource_score = 0.5
-            composite = round(
-                distance_score * weights.get("distance", 0.45)
-                + timing_score * weights.get("timing", 0.25)
-                + location_score * weights.get("location_confidence", 0.20)
-                + resource_score * weights.get("resource", 0.10),
-                4,
-            )
+            resource_score = round(compatibility_points / 20, 4)
+            composite = round(total_points / 100, 4)
             pair = sorted([a["id"], b["id"]])
             con.execute(
                 """
                 INSERT INTO opportunity_scores(
                   id, dataset_id, profile_id, project_a, project_b, center_distance_mi,
                   distance_tier, date_gap_days, same_state, location_confidence_score,
-                  timing_score, resource_score, composite_score
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  timing_score, resource_score, composite_score,
+                  distance_score, timeline_score, compatibility_score, total_score
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     "__".join(pair), dataset_id, profile_id, pair[0], pair[1], round(distance, 6), tier, gap,
                     int(a["state"] == b["state"]), location_score, timing_score, resource_score, composite,
+                    distance_points, timeline_points, compatibility_points, total_points,
                 ),
             )
             inserted += 1

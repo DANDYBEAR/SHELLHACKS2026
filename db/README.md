@@ -20,7 +20,7 @@ The refresh scripts create `db/data/gridlock.sqlite` with:
 - project endpoints and computed project centers
 - utilities
 - source document table, empty until document-backed imports are intentionally re-enabled
-- scoring profiles and parameter weights
+- scoring profiles and the 100-point ranking distribution
 - scored utility-pair opportunities
 - optional Gemini-extracted CTPC reliability project rows
 - optional Gemini-extracted Dominion 2024-2028 $2M+ project description rows
@@ -52,11 +52,21 @@ The IRP Volume 3 import is Gemini-backed too. Run `npm run data:import-irp-volum
 - `dominion_project_descriptions`: Gemini-extracted Dominion project description entries with complete requested fields
 - `irp_volume3_projects`: Gemini-extracted IRP Volume 3 entries with complete Teams/project/sponsor fields
 - `scoring_profiles`: named scoring models
-- `scoring_parameters`: weights for distance, timing, confidence and resource similarity
-- `opportunity_scores`: ranked utility-to-utility project pairs
+- `scoring_parameters`: point maximums for distance, timeline, and coordination compatibility
+- `opportunity_scores`: ranked utility-to-utility project pairs, including distance, timeline, compatibility, and total scores
 - `dashboard_projects`: UI-safe project view
 
 The UI should continue to show project facts and rankings from SQLite-backed API responses.
+
+## Opportunity scoring
+
+The active profile ranks qualifying cross-utility pairs on a 100-point scale:
+
+- distance score: 40 points maximum, using center-to-center distance; pairs over 25 miles are excluded
+- timeline score: 40 points maximum; current imported data uses in-service date proximity until construction-window start/end dates are available
+- coordination compatibility: 20 points maximum, reserved for internal AI extraction of project type, activities, infrastructure/components, ROW/access, and equipment/logistics similarities
+
+Compatibility stays hidden from the UI evidence flow. It can be populated later from Gemini-parsed document fields and stored as structured score inputs.
 
 ## TIGER/Line data
 

@@ -11,6 +11,8 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
+from scoring import opportunity_points
+
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA = ROOT / "db" / "schema.sql"
 SOURCE = ROOT / "work" / "projects_import.json"
@@ -166,14 +168,13 @@ def main() -> None:
         INSERT INTO scoring_profiles(name, description, max_distance_mi, immediate_distance_mi, local_distance_mi, active)
         VALUES (?, ?, 25, 1, 5, 1)
         """,
-        ("prototype-v1", "Distance-first score using timing and data-confidence signals."),
+        ("prototype-v2", "100-point opportunity score: distance 40, timeline 40, coordination compatibility 20."),
     )
     profile_id = con.execute("SELECT last_insert_rowid()").fetchone()[0]
     parameters = [
-        ("distance", 0.45, "lower_is_better", "Closer project centers improve coordination potential."),
-        ("timing", 0.25, "lower_is_better", "Closer planned dates improve coordination potential."),
-        ("location_confidence", 0.20, "higher_is_better", "Better located projects receive higher confidence."),
-        ("resource", 0.10, "higher_is_better", "Future placeholder for shared crews/equipment/material signals."),
+        ("distance", 40, "higher_is_better", "Center-to-center distance points. Pairs over 25 miles are excluded."),
+        ("timeline", 40, "higher_is_better", "Construction overlap/date-proximity points. Imported in-service dates currently use date proximity."),
+        ("compatibility", 20, "higher_is_better", "Future AI-derived construction, activity, component, ROW/access, and logistics compatibility points."),
     ]
     con.executemany(
         "INSERT INTO scoring_parameters(profile_id, key, weight, direction, description) VALUES (?, ?, ?, ?, ?)",
@@ -182,7 +183,6 @@ def main() -> None:
 
     projects = data["projects"]
     centers = {project["id"]: center(project) for project in projects}
-    weights = {key: weight for key, weight, _, _ in parameters}
     for i, a in enumerate(projects):
         for b in projects[i + 1:]:
             if a["utility"] == b["utility"] or not centers[a["id"]] or not centers[b["id"]]:
@@ -192,32 +192,28 @@ def main() -> None:
             if distance_tier is None:
                 continue
             gap = date_gap(a.get("inServiceDate"), b.get("inServiceDate"))
-            distance_score = normalized_score(distance, 25)
-            timing_score = normalized_score(gap if gap is not None else 3650, 3650)
+            distance_points, timeline_points, compatibility_points, total_points = opportunity_points(distance, gap)
+            timing_score = round(timeline_points / 40, 4)
             location_score = min(
                 con.execute("SELECT location_confidence FROM projects WHERE id = ?", (a["id"],)).fetchone()[0],
                 con.execute("SELECT location_confidence FROM projects WHERE id = ?", (b["id"],)).fetchone()[0],
             )
-            resource_score = 0.5
-            composite = round(
-                distance_score * weights["distance"]
-                + timing_score * weights["timing"]
-                + location_score * weights["location_confidence"]
-                + resource_score * weights["resource"],
-                4,
-            )
+            resource_score = round(compatibility_points / 20, 4)
+            composite = round(total_points / 100, 4)
             pair = sorted([a["id"], b["id"]])
             con.execute(
                 """
                 INSERT INTO opportunity_scores(
                   id, dataset_id, profile_id, project_a, project_b, center_distance_mi,
                   distance_tier, date_gap_days, same_state, location_confidence_score,
-                  timing_score, resource_score, composite_score
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  timing_score, resource_score, composite_score,
+                  distance_score, timeline_score, compatibility_score, total_score
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     "__".join(pair), dataset_id, profile_id, pair[0], pair[1], round(distance, 6), distance_tier, gap,
                     int(a["state"] == b["state"]), location_score, timing_score, resource_score, composite,
+                    distance_points, timeline_points, compatibility_points, total_points,
                 ),
             )
 

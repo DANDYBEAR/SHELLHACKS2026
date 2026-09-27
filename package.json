@@ -14,6 +14,7 @@
     "test:browser": "node tests/map-smoke.mjs",
     "start": "npm run start -w backend",
     "db:build": "python scripts/build_db.py",
+    "db:rebuild-scores": "python scripts/rebuild_scores.py",
     "data:import-example": "python scripts/import_sample.py \"C:\\Users\\jeffr\\Downloads\\Projects_Overlaps.xlsx\"",
     "data:import-ctpc": "python scripts/import_ctpc_gemini.py",
     "data:import-dominion-descriptions": "python scripts/import_dominion_descriptions_gemini.py",

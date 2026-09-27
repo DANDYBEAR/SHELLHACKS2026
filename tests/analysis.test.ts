@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DatabaseSync } from 'node:sqlite';
-import { calculateOpportunities, candidateCount, center, dayGap, distanceMiles, rankOpportunities, tierForDistance } from '../shared/analysis';
+import { calculateOpportunities, candidateCount, center, dayGap, distanceMiles, distanceScore, rankOpportunities, scoreOpportunity, tierForDistance, timelineScore } from '../shared/analysis';
 import type { Dataset, Opportunity, Project } from '../shared/types';
 type ProjectRow = {
   id: string; utility: string; state: string; name: string; shortName: string;
@@ -69,7 +69,9 @@ describe('supplied workbook reconciliation', () => {
       const p = pairs.find(p => p.id === id)!;
       expect(p.distanceMi).toBeCloseTo(distance, 2); expect(p.timeGapDays).toBe(gap);
     }
-    expect(pairs.map(p => p.id)).toEqual(['DESC_2__GPC_1', 'DESC_3__GPC_2', 'DESC_5__GPC_2', 'DESC_3__GPC_3', 'DESC_5__GPC_3', 'DESC_1__GPC_1']);
+    expect(pairs.map(p => p.id)).toEqual(['DESC_3__GPC_2', 'DESC_2__GPC_1', 'DESC_3__GPC_3', 'DESC_1__GPC_1', 'DESC_5__GPC_2', 'DESC_5__GPC_3']);
+    expect(pairs.find(p => p.id === 'DESC_3__GPC_2')?.totalScore).toBe(46);
+    expect(pairs.find(p => p.id === 'DESC_2__GPC_1')?.timelineScore).toBe(0);
     expect(pairs.filter(p => p.tier === 1)).toHaveLength(0);
     expect(pairs.filter(p => p.tier === 2)).toHaveLength(1);
     expect(pairs.filter(p => p.tier === 3)).toHaveLength(5);
@@ -115,6 +117,8 @@ describe('dataset imports', () => {
 });
 describe('geographic and timing boundaries', () => {
   it.each([[0, 1], [.99999, 1], [1, 2], [4.99999, 2], [5, 3], [24.99999, 3], [25, null], [25.01, null], [-1, null], [NaN, null]])('classifies %s miles as tier %s', (distance, tier) => expect(tierForDistance(distance as number)).toBe(tier));
+  it.each([[0, 40], [2, 40], [2.1, 39], [5, 36], [10, 30], [15, 22], [20, 14], [25, 5], [25.01, 0]])('scores %s miles as %s distance points', (distance, expected) => expect(distanceScore(distance as number)).toBe(expected));
+  it.each([[0, 29], [30, 24], [31, 23], [90, 18], [180, 10], [365, 3], [366, 2], [730, 0], [3074, 0]])('scores %s date-gap days as %s timeline points', (gap, expected) => expect(timelineScore(gap as number)).toBe(expected));
   it('uses complete endpoint coordinates, preserving legitimate zeroes', () => {
     expect(center(workbookProjects[0])).toEqual([-82.051362, 33.562599]);
     expect(center(workbookProjects[2])![0]).toBeCloseTo(-81.0785475, 7);
@@ -132,10 +136,13 @@ describe('geographic and timing boundaries', () => {
     expect(dayGap('2025-02-30', '2025-03-02')).toBeNull();
     expect(dayGap(null, '2025-01-01')).toBeNull();
   });
-  it('ranks tier first, known timing next, then precise distance', () => {
-    const base: Opportunity = { id: 'a', projectA: 'a', projectB: 'b', distanceMi: 6, timeGapDays: 30, tier: 3 };
-    const pairs = [base, { ...base, id: 'b', distanceMi: 5.5, timeGapDays: 2900 }, { ...base, id: 'c', distanceMi: 4.9, timeGapDays: null, tier: 2 as const }];
-    expect(rankOpportunities(pairs).map(p => p.id)).toEqual(['c', 'a', 'b']);
+  it('ranks by total score so extreme date gaps are not treated as good fits', () => {
+    const make = (id: string, distanceMi: number, timeGapDays: number | null, tier: Opportunity['tier']): Opportunity => ({
+      id, projectA: 'a', projectB: 'b', distanceMi, timeGapDays, tier, ...scoreOpportunity(distanceMi, timeGapDays),
+    });
+    const pairs = [make('a', 6, 30, 3), make('b', 5.5, 2900, 3), make('c', 4.9, null, 2)];
+    expect(rankOpportunities(pairs).map(p => p.id)).toEqual(['a', 'c', 'b']);
     expect(rankOpportunities(pairs, 'nearest').map(p => p.id)).toEqual(['c', 'b', 'a']);
+    expect(pairs.find(p => p.id === 'b')?.timelineScore).toBe(0);
   });
 });

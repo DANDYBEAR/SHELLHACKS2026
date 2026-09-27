@@ -176,11 +176,15 @@ CREATE TABLE IF NOT EXISTS opportunity_scores (
   timing_score REAL NOT NULL DEFAULT 0,
   resource_score REAL NOT NULL DEFAULT 0,
   composite_score REAL NOT NULL DEFAULT 0,
+  distance_score REAL NOT NULL DEFAULT 0,
+  timeline_score REAL NOT NULL DEFAULT 0,
+  compatibility_score REAL NOT NULL DEFAULT 0,
+  total_score REAL NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   UNIQUE (dataset_id, profile_id, project_a, project_b)
 );
 
-CREATE INDEX IF NOT EXISTS idx_scores_rank ON opportunity_scores(dataset_id, profile_id, composite_score DESC, distance_tier, center_distance_mi);
+CREATE INDEX IF NOT EXISTS idx_scores_rank ON opportunity_scores(dataset_id, profile_id, total_score DESC, center_distance_mi);
 
 CREATE VIEW IF NOT EXISTS dashboard_projects AS
 SELECT
