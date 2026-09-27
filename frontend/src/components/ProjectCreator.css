@@ -115,8 +115,16 @@
 	background: #a8322b;
 }
 
-.top-search-bar {
-	padding-left: 205px;
+@media (min-width: 761px) {
+	.top-search-bar {
+		padding-left: 189px;
+	}
+
+	.top-search-bar .project-search {
+		flex: 1;
+		width: auto;
+		min-width: 0;
+	}
 }
 
 .project-wizard-backdrop {
