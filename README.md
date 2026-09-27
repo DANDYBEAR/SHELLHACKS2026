@@ -73,4 +73,10 @@ To parse the Dominion 2024-2028 $2M+ project descriptions PDF with Gemini and lo
 npm run data:import-dominion-descriptions
 ```
 
-Use `npm run data:refresh-all` when you want to rebuild the workbook tables and immediately rerun both Gemini imports.
+To parse the 2025 IRP Volume 3 public disclosure PDF with Gemini and load only complete Teams/project rows, run:
+
+```powershell
+npm run data:import-irp-volume3
+```
+
+Use `npm run data:refresh-all` when you want to rebuild the workbook tables and immediately rerun all Gemini imports.

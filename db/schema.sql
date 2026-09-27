@@ -131,6 +131,18 @@ CREATE TABLE IF NOT EXISTS dominion_project_descriptions (
 CREATE INDEX IF NOT EXISTS idx_dominion_desc_status ON dominion_project_descriptions(project_status);
 CREATE INDEX IF NOT EXISTS idx_dominion_desc_date ON dominion_project_descriptions(planned_in_service_date);
 
+CREATE TABLE IF NOT EXISTS irp_volume3_projects (
+  teams TEXT PRIMARY KEY,
+  project_name TEXT NOT NULL,
+  last_years_need_date TEXT NOT NULL,
+  project_sponsor TEXT NOT NULL,
+  source_file TEXT NOT NULL,
+  imported_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_irp_volume3_sponsor ON irp_volume3_projects(project_sponsor);
+CREATE INDEX IF NOT EXISTS idx_irp_volume3_need_date ON irp_volume3_projects(last_years_need_date);
+
 CREATE TABLE IF NOT EXISTS scoring_profiles (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL UNIQUE,

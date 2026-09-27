@@ -17,8 +17,9 @@
     "data:import-example": "python scripts/import_sample.py \"C:\\Users\\jeffr\\Downloads\\Projects_Overlaps.xlsx\"",
     "data:import-ctpc": "python scripts/import_ctpc_gemini.py",
     "data:import-dominion-descriptions": "python scripts/import_dominion_descriptions_gemini.py",
+    "data:import-irp-volume3": "python scripts/import_irp_volume3_gemini.py",
     "data:refresh": "npm run data:import-example && npm run db:build",
-    "data:refresh-all": "npm run data:refresh && npm run data:import-ctpc && npm run data:import-dominion-descriptions"
+    "data:refresh-all": "npm run data:refresh && npm run data:import-ctpc && npm run data:import-dominion-descriptions && npm run data:import-irp-volume3"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

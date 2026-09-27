@@ -1,5 +1,5 @@
 export type Coordinate = [number, number]; // Longitude, latitude
-export type Utility = 'DESC' | 'GPC' | 'SCE' | 'NCE' | 'GAE' | 'ALE' | 'FLE' | 'CTPC';
+export type Utility = 'DESC' | 'GPC' | 'SCE' | 'NCE' | 'GAE' | 'ALE' | 'FLE' | 'CTPC' | 'GTC' | 'MEAG' | 'OPC' | 'SAV' | 'DU';
 export type Endpoint = { name: string; coordinates: Coordinate | null };
 export type Project = {
   id: string; utility: Utility; state: string; name: string; shortName: string;
@@ -26,6 +26,11 @@ export const UTILITY_NAMES: Record<Utility, string> = {
   ALE: 'AL Electric',
   FLE: 'FL Electric',
   CTPC: 'CarolinasTCP',
+  GTC: 'Georgia Transmission Corporation',
+  MEAG: 'MEAG Power',
+  OPC: 'Oglethorpe Power',
+  SAV: 'SAV',
+  DU: 'DU',
 };
 export const UTILITY_COLORS: Record<Utility, string> = {
   DESC: '#5486ff',
@@ -36,6 +41,11 @@ export const UTILITY_COLORS: Record<Utility, string> = {
   ALE: '#a36b1f',
   FLE: '#00a2b8',
   CTPC: '#16a34a',
+  GTC: '#6b8e23',
+  MEAG: '#b45309',
+  OPC: '#0f766e',
+  SAV: '#be185d',
+  DU: '#475569',
 };
 export function utilityName(utility: string) {
   return UTILITY_NAMES[utility as Utility] ?? utility;

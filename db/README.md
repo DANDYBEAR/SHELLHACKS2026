@@ -24,6 +24,7 @@ The refresh scripts create `db/data/gridlock.sqlite` with:
 - scored utility-pair opportunities
 - optional Gemini-extracted CTPC reliability project rows
 - optional Gemini-extracted Dominion 2024-2028 $2M+ project description rows
+- optional Gemini-extracted 2025 IRP Volume 3 project rows
 
 ## Current source
 
@@ -32,6 +33,8 @@ Source: user-supplied `Projects_Overlaps.xlsx`, `projects!A1:Q11`. Validation re
 The CTPC mid-year update import is separate from the workbook refresh because it requires `GEMINI_API_KEY`. Run `npm run data:import-ctpc` to parse `2025_Collaborative_Transmission_Plan_MidYear_Update_08-13-26.pdf` into `collaborative_transmission_projects`. The import keeps only clean rows with `Project ID`, `Reliability Project`, `Status`, `Transmission Owner`, `Estimated In-Service date`, and `Estimated Cost($M)`, and it rejects rows whose status is `Removed`.
 
 The Dominion descriptions import is also Gemini-backed. Run `npm run data:import-dominion-descriptions` to parse `2024-2028-2million-and-above-project-descriptions.pdf` into `dominion_project_descriptions`. The import keeps only complete entries with bold title name, project ID, project description, project status, planned in-service date, and total estimated project cost.
+
+The IRP Volume 3 import is Gemini-backed too. Run `npm run data:import-irp-volume3` to parse `2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf` into `irp_volume3_projects`. The import keeps only rows with Teams/ProjectID, Project Name, Last Year's Need Date, and Project Sponsor.
 
 ## Database model
 
@@ -47,6 +50,7 @@ The Dominion descriptions import is also Gemini-backed. Run `npm run data:import
 - `geo_contexts`: future location enrichment, including TIGER/Line identifiers
 - `collaborative_transmission_projects`: Gemini-extracted CTPC reliability projects, excluding removed rows
 - `dominion_project_descriptions`: Gemini-extracted Dominion project description entries with complete requested fields
+- `irp_volume3_projects`: Gemini-extracted IRP Volume 3 entries with complete Teams/project/sponsor fields
 - `scoring_profiles`: named scoring models
 - `scoring_parameters`: weights for distance, timing, confidence and resource similarity
 - `opportunity_scores`: ranked utility-to-utility project pairs

@@ -54,6 +54,7 @@ const projects = loadProjectsFromDb();
 const workbookProjects = projects.filter(p => p.sourceRow <= 11);
 const ctpcProjects = projects.filter(p => p.utility === 'CTPC');
 const dominionDescriptionProjects = projects.filter(p => p.id.startsWith('DESC24_'));
+const irpVolume3Projects = projects.filter(p => p.id.startsWith('IRP25_'));
 describe('supplied workbook reconciliation', () => {
   it('reproduces all six distances, date gaps and 25 comparisons', () => {
     const pairs = calculateOpportunities(workbookProjects);
@@ -99,6 +100,12 @@ describe('dataset imports', () => {
     expect(dominionDescriptionProjects.every(p => p.document === '2024-2028-2million-and-above-project-descriptions.pdf')).toBe(true);
     expect(dominionDescriptionProjects.every(p => p.sourceProjectId && p.rawDate)).toBe(true);
     expect(dominionDescriptionProjects.filter(p => center(p)).length).toBeGreaterThan(35);
+  });
+  it('promotes complete IRP Volume 3 rows with sponsor utilities', () => {
+    expect(irpVolume3Projects).toHaveLength(208);
+    expect(new Set(irpVolume3Projects.map(p => p.utility))).toEqual(new Set(['DU', 'GPC', 'GTC', 'MEAG', 'SAV']));
+    expect(irpVolume3Projects.every(p => p.document === '2025 IRP Volume 3 PUBLIC DISCLOSURE.pdf')).toBe(true);
+    expect(irpVolume3Projects.every(p => p.sourceProjectId && p.name && p.rawDate)).toBe(true);
   });
 });
 describe('geographic and timing boundaries', () => {

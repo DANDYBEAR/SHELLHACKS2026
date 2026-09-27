@@ -25,6 +25,11 @@ UTILITY_NAMES = {
     "ALE": "AL Electric",
     "FLE": "FL Electric",
     "CTPC": "CarolinasTCP",
+    "GTC": "Georgia Transmission Corporation",
+    "MEAG": "MEAG Power",
+    "OPC": "Oglethorpe Power",
+    "SAV": "SAV",
+    "DU": "DU",
 }
 UTILITY_STATE_SCOPE = {
     "DESC": "SC",
@@ -35,6 +40,11 @@ UTILITY_STATE_SCOPE = {
     "ALE": "AL",
     "FLE": "FL",
     "CTPC": "NC/SC",
+    "GTC": "GA",
+    "MEAG": "GA",
+    "OPC": "GA",
+    "SAV": "GA",
+    "DU": "GA",
 }
 DOCUMENT_ROOT = ROOT / "ProjectListings"
 
